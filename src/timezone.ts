@@ -42,6 +42,62 @@ export function zonedNow(date: Date, timeZone: string): Now {
   }
 }
 
+const MINUTES_PER_WEEK = 7 * 24 * 60
+
+/**
+ * How far the local time at an instant is from a local weekday and time, in
+ * minutes, taking the short way round the week so either side of it is signed.
+ */
+function minutesFromTarget(
+  instant: Date,
+  timeZone: string,
+  target: { minutes: number; weekday: number },
+): number {
+  const landed = zonedNow(instant, timeZone)
+  const difference =
+    landed.weekday * 24 * 60 +
+    landed.minutes -
+    (target.weekday * 24 * 60 + target.minutes)
+
+  return (
+    ((difference + MINUTES_PER_WEEK * 1.5) % MINUTES_PER_WEEK) -
+    MINUTES_PER_WEEK / 2
+  )
+}
+
+/** Wide enough to hold any clock change on either side of the gap. */
+const SEARCH_WINDOW = 4 * 60 * MS_PER_MINUTE
+
+/**
+ * The first instant whose local time has reached a local time that does not
+ * exist, which is the moment of the jump that skipped it.
+ */
+function firstInstantReaching(
+  near: Date,
+  timeZone: string,
+  target: { minutes: number; weekday: number },
+): Date {
+  const reached = (time: number) =>
+    minutesFromTarget(new Date(time), timeZone, target) >= 0
+
+  let before = near.getTime() - SEARCH_WINDOW
+  let after = near.getTime() + SEARCH_WINDOW
+  if (reached(before) || !reached(after)) {
+    return near
+  }
+
+  while (after - before > MS_PER_MINUTE) {
+    const middle = before + Math.floor((after - before) / 2)
+    if (reached(middle)) {
+      after = middle
+    } else {
+      before = middle
+    }
+  }
+
+  return new Date(after)
+}
+
 /**
  * The instant at a given weekday and time of day, nearest the real one. Used by
  * the development panel, which scrubs in local terms rather than in instants.
@@ -53,13 +109,19 @@ export function zonedNow(date: Date, timeZone: string): Now {
  *
  * A local day is not always 24 elapsed hours, so the first jump is measured
  * against the zone and corrected. Without that, scrubbing across the night the
- * clocks change lands an hour out. A time that a forward change skips does not
- * exist at all, and the nearest real instant is returned instead.
+ * clocks change lands an hour out.
+ *
+ * A time a forward change skips does not exist, and `whenSkipped` says what to
+ * do about it. The scrubber takes the nearest real instant, which reads as the
+ * hour before the jump. A countdown cannot: an end time inside the gap would
+ * resolve to an instant already gone and count backwards, so it asks for the
+ * first instant the clocks reach at or after it, which is the jump itself.
  */
 export function instantForLocal(
   reference: Date,
   timeZone: string,
   target: { minutes: number; weekday: number },
+  whenSkipped: 'nearest' | 'forward' = 'nearest',
 ): Date {
   const shortWayRound = (from: number, to: number) => {
     const forward = (to - from + 7) % 7
@@ -89,5 +151,8 @@ export function instantForLocal(
     )
   }
 
-  return instant
+  // Nothing landed on it, so the local time is one the clocks skipped.
+  return whenSkipped === 'forward'
+    ? firstInstantReaching(instant, timeZone, target)
+    : instant
 }

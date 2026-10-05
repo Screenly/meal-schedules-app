@@ -178,7 +178,17 @@ export function renderToday(
   element('[data-date]').textContent = longDate
 }
 
-/** A row at full size, in reference pixels, as the stylesheet lays it out. */
+/**
+ * Floors for the text inside a row. A name too long for its column is shrunk
+ * rather than wrapped, so that the row keeps the height the board counted on.
+ */
+const ROW_NAME_MIN_SIZE = 30
+const ROW_LOCATION_MIN_SIZE = 20
+
+/**
+ * A row at full size, in reference pixels, as the stylesheet lays it out. The
+ * line boxes are fixed to these, so a row is this tall whatever it says.
+ */
 const ROW = { padding: 26, name: 68, time: 64, location: 34, gap: 6 }
 const ROW_HEIGHT =
   ROW.padding * 2 + ROW.name * 1.1 + ROW.gap + ROW.location * 1.2 + 2
@@ -256,6 +266,18 @@ export function fitBoardRows(): void {
   }
 }
 
+/** Shrink any name or location too long for its column onto one line. */
+function fitRowText(): void {
+  const fit = (selector: string, minimum: number) => {
+    document
+      .querySelectorAll<HTMLElement>(selector)
+      .forEach((field) => fitToWidth(field, minimum))
+  }
+
+  fit('.sitting-name', ROW_NAME_MIN_SIZE)
+  fit('.sitting-location', ROW_LOCATION_MIN_SIZE)
+}
+
 /**
  * Scale the parts that vary with the content. Run after the board is drawn and
  * again on the next frame: the first render happens before <auto-scaler> has
@@ -265,6 +287,9 @@ export function fitDynamicText(): void {
   fitToWidth(element<HTMLElement>('[data-venue]'), VENUE_MIN_SIZE)
   fitToWidth(element<HTMLElement>('[data-headline-name]'), HEADLINE_MIN_SIZE)
   fitBoardRows()
+  // After the rows are scaled, not before: what a name has to fit into is the
+  // column at the size the fitter just settled on.
+  fitRowText()
 }
 
 /**

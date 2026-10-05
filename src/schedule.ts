@@ -24,10 +24,17 @@ function minutesUntil(localMinutes: number, now: Now): number {
   // always falls on the weekday being asked for, so the step from there is
   // none and only the time of day is left to settle.
   const reference = new Date(now.instant.getTime() + dayShift * DAY_MS)
-  const instant = instantForLocal(reference, now.timeZone, {
-    minutes: localMinutes - dayShift * MINUTES_PER_DAY,
-    weekday: (now.weekday + dayShift + 7) % 7,
-  })
+  const instant = instantForLocal(
+    reference,
+    now.timeZone,
+    {
+      minutes: localMinutes - dayShift * MINUTES_PER_DAY,
+      weekday: (now.weekday + dayShift + 7) % 7,
+    },
+    // A sitting starting or ending in an hour the clocks skipped does so when
+    // they pass it, never in the hour before it, which has already gone.
+    'forward',
+  )
 
   return Math.round((instant.getTime() - now.instant.getTime()) / 60000)
 }

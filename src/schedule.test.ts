@@ -391,4 +391,40 @@ describe('countdowns across a clock change', () => {
     // 00:30 GMT to 07:00 BST is five and a half hours, not six and a half.
     expect(board[0]!.startsIn).toBe(330)
   })
+
+  test('a time the clocks skip counts to the jump, never backwards', () => {
+    // London goes from 01:00 to 02:00 on 29 March 2026, so 01:30 never
+    // happens. At 00:45 the service is still being served and ends when the
+    // clocks pass the time it was set to end at, a quarter of an hour later.
+    const gapped = parseMeals('Night service | 00:00 | 01:30 | Bar').meals
+    const instant = new Date('2026-03-29T00:45:00Z')
+    const sitting = scheduleFor(gapped, zonedNow(instant, 'Europe/London'))[0]!
+
+    expect(sitting.status).toBe('serving')
+    expect(sitting.endsIn).toBe(15)
+  })
+
+  test('a sitting that starts in the gap counts forward too', () => {
+    const gapped = parseMeals('Early start | 01:30 | 04:00 | Bar').meals
+    const instant = new Date('2026-03-29T00:15:00Z')
+    const sitting = scheduleFor(gapped, zonedNow(instant, 'Europe/London'))[0]!
+
+    // 01:00Z is when the clocks jump, 45 minutes after 00:15Z.
+    expect(sitting.startsIn).toBe(45)
+    expect(sitting.endsIn).toBeGreaterThan(sitting.startsIn)
+  })
+
+  test('no countdown points backwards through the gap', () => {
+    const gapped = parseMeals('Night service | 00:00 | 01:30 | Bar').meals
+
+    for (let minute = 0; minute < 120; minute += 5) {
+      const instant = new Date(Date.UTC(2026, 2, 29, 0, minute, 0))
+      const now = zonedNow(instant, 'Europe/London')
+      for (const sitting of scheduleFor(gapped, now)) {
+        if (sitting.status === 'serving' || sitting.status === 'next') {
+          expect(sitting.endsIn).toBeGreaterThanOrEqual(0)
+        }
+      }
+    }
+  })
 })

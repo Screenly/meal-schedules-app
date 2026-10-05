@@ -243,22 +243,41 @@
     border-top: 1px solid var(--rule);
   }
 
+  /*
+   * min-width is what lets a long name shrink instead of widening its column.
+   * Without it the automatic minimum of a grid item is its longest unbroken
+   * run of text, which pushes the times off the right of the board.
+   */
   .sitting-title {
+    min-width: 0;
     grid-column: 1;
   }
 
+  /*
+   * One line each, at a size that fits. A name wrapping to two lines makes the
+   * row taller than the board counted on when it worked out how many rows fit,
+   * so the line boxes are held to the height the fitter scaled them to and the
+   * text is shrunk into them: the row is the same height whatever it says.
+   */
   .sitting-name {
+    height: calc(var(--row-name) * 1.1);
+    overflow: hidden;
     font-family: var(--font-display);
     font-size: var(--row-name);
     font-weight: var(--name-weight);
     letter-spacing: -0.01em;
-    line-height: 1.1;
+    line-height: calc(var(--row-name) * 1.1);
+    white-space: nowrap;
   }
 
   .sitting-location {
+    height: calc(var(--row-location) * 1.2);
+    overflow: hidden;
     margin-top: var(--row-gap);
     color: var(--ink-muted);
     font-size: var(--row-location);
+    line-height: calc(var(--row-location) * 1.2);
+    white-space: nowrap;
   }
 
   /* Serif in the classic themes, like the names and the clock beside them. */
