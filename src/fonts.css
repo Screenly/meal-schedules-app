@@ -1,0 +1,70 @@
+/**
+ * Playfair Display, the face the classic themes are drawn in, carried inside
+ * the app. Inter comes from the library's own stylesheet.
+ *
+ * A player has neither installed, and an Edge App cannot count on reaching the
+ * network, so these are served from the bundle. Latin and Latin Extended only,
+ * which covers the venue and dish names a board in Europe or the Americas will
+ * carry without the weight of every script.
+ *
+ * Both are variable fonts: one file covers the whole weight range.
+ *
+ * Inter and Playfair Display are licensed under the SIL Open Font License 1.1.
+ * See static/fonts/OFL.txt.
+ *
+ * `font-display: block` rather than `swap`: a board that redraws itself in a
+ * different face a second after it appears looks broken, and nobody is reading
+ * it in that first second anyway.
+ */
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: block;
+  src: url('../static/fonts/playfair-display-italic-latin-ext.woff2')
+    format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: block;
+  src: url('../static/fonts/playfair-display-italic-latin.woff2')
+    format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: block;
+  src: url('../static/fonts/playfair-display-normal-latin-ext.woff2')
+    format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: block;
+  src: url('../static/fonts/playfair-display-normal-latin.woff2')
+    format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
