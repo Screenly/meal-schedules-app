@@ -19,7 +19,6 @@
     --surface: #0d1017;
     --rule: rgba(255, 255, 255, 0.12);
     --accent: #ffb43a;
-    --accent-ink: #0d1017;
     --font-display: 'Inter', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
     --display-weight: 700;
@@ -35,7 +34,6 @@
     --surface: #f6f7f9;
     --rule: rgba(16, 19, 26, 0.14);
     --accent: #b8700a;
-    --accent-ink: #ffffff;
     --font-display: 'Inter', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
     --display-weight: 700;
@@ -52,7 +50,6 @@
     --surface: #fbf8f1;
     --rule: rgba(42, 37, 32, 0.18);
     --accent: #a06e47;
-    --accent-ink: #fbf8f1;
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;
     --display-weight: 500;
@@ -68,7 +65,6 @@
     --surface: #1a1611;
     --rule: rgba(244, 236, 224, 0.16);
     --accent: #c9a227;
-    --accent-ink: #1a1611;
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;
     --display-weight: 500;
@@ -167,7 +163,7 @@
   }
 
   .headline-status {
-    color: var(--accent);
+    color: var(--accent-text, var(--accent));
     font-size: 36px;
     font-weight: 600;
     text-transform: uppercase;
@@ -283,7 +279,7 @@
    * breakfast six hours off. Finished sittings fade, and the rest are equal.
    */
   .is-serving .sitting-name {
-    color: var(--accent);
+    color: var(--accent-text, var(--accent));
   }
 
   /* Nothing configured, or a line we could not read */

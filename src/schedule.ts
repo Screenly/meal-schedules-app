@@ -9,6 +9,8 @@
 import { MINUTES_PER_DAY, type Meal } from './meals.js'
 import { instantForLocal } from './timezone.js'
 
+const DAY_MS = 86_400_000
+
 /** Minutes until a local time measured from today's midnight actually arrives. */
 function minutesUntil(localMinutes: number, now: Now): number {
   if (!now.instant || !now.timeZone) {
@@ -16,7 +18,13 @@ function minutesUntil(localMinutes: number, now: Now): number {
   }
 
   const dayShift = Math.floor(localMinutes / MINUTES_PER_DAY)
-  const instant = instantForLocal(now.instant, now.timeZone, {
+  // instantForLocal goes to the nearest weekday of that name, never more than
+  // three days either way, so a sitting a week out would resolve to the one
+  // just gone. Move the reference alongside it first: the shifted instant
+  // always falls on the weekday being asked for, so the step from there is
+  // none and only the time of day is left to settle.
+  const reference = new Date(now.instant.getTime() + dayShift * DAY_MS)
+  const instant = instantForLocal(reference, now.timeZone, {
     minutes: localMinutes - dayShift * MINUTES_PER_DAY,
     weekday: (now.weekday + dayShift + 7) % 7,
   })

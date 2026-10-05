@@ -24,7 +24,7 @@ import {
   type Display,
 } from './panels.js'
 import { listFor, scheduleFor } from './schedule.js'
-import { inkOnAccent, parseAccentColor, resolveTheme } from './theme.js'
+import { accentText, parseAccentColor, resolveTheme } from './theme.js'
 import { zonedNow } from './timezone.js'
 
 /**
@@ -63,12 +63,22 @@ function applyAppearance(brandingAccent: string | undefined): void {
   // Clear first: without this an accent set for one theme survives a switch to
   // another and shadows the palette that theme brings.
   root.style.removeProperty('--accent')
-  root.style.removeProperty('--accent-ink')
+  root.style.removeProperty('--accent-text')
 
   if (accent) {
     root.style.setProperty('--accent', accent)
-    root.style.setProperty('--accent-ink', inkOnAccent(accent))
   }
+
+  // Read back rather than tracked: this covers the theme's own accent as well
+  // as an overridden one, and has to happen after data-theme picks a surface.
+  const styles = window.getComputedStyle(root)
+  root.style.setProperty(
+    '--accent-text',
+    accentText(
+      styles.getPropertyValue('--accent').trim(),
+      styles.getPropertyValue('--surface').trim(),
+    ),
+  )
 }
 
 interface Settings {
@@ -106,14 +116,16 @@ function render(settings: Settings): void {
     settings.display,
     formatLongDate(instant, settings.display.locale, settings.timeZone),
   )
+  // The banner and the footer are drawn first: the board measures the room
+  // they leave to decide how many rows fit in it, and a footer that appears
+  // afterwards would take that room back.
   renderHeadline(schedule, settings.display)
-  // The banner is drawn first: what is left over decides how many rows fit.
+  renderNotice(problems)
   renderBoard(
     listFor(schedule, rowCapacity()),
     settings.display,
     meals.length > 0,
   )
-  renderNotice(problems)
 
   fitDynamicText()
   // Once after layout, and again when the fonts land: their metrics decide the

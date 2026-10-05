@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { parseMeals } from './meals.js'
+import { MINUTES_PER_DAY, parseMeals } from './meals.js'
 import { zonedNow } from './timezone.js'
 import { boardFor, headlineSitting, listFor, scheduleFor } from './schedule.js'
 
@@ -321,6 +321,37 @@ describe('the list under the banner', () => {
 
     expect(listFor(schedule, 2)).toHaveLength(2)
     expect(listFor(schedule, 1)).toHaveLength(1)
+  })
+})
+
+describe('countdowns to another day', () => {
+  const weekly = parseMeals(
+    'Monday roast | 12:00 | 15:00 | Oak Room | Mon',
+  ).meals
+
+  test('a sitting most of a week out counts the whole way', () => {
+    // From a Tuesday, Monday is six days ahead. Resolving it against the
+    // nearest Monday found yesterday's instead and counted backwards.
+    const instant = new Date('2026-06-09T10:00:00Z')
+    const schedule = scheduleFor(weekly, zonedNow(instant, 'Europe/London'))
+
+    expect(schedule[0]!.startsIn).toBe(6 * 24 * 60 + 60)
+  })
+
+  test('every day of the week it could fall on', () => {
+    for (let day = 0; day < 7; day += 1) {
+      const instant = new Date(Date.UTC(2026, 5, 8 + day, 10, 0, 0))
+      const now = zonedNow(instant, 'Europe/London')
+      const sitting = scheduleFor(weekly, now)[0]!
+      const zoneless = scheduleFor(weekly, {
+        minutes: now.minutes,
+        weekday: now.weekday,
+      })[0]!
+
+      // June is a settled month in London, so the two have to agree.
+      expect(sitting.startsIn).toBe(zoneless.startsIn)
+      expect(sitting.startsIn).toBeGreaterThan(-MINUTES_PER_DAY)
+    }
   })
 })
 

@@ -53,7 +53,11 @@ export function headlineText(
   const where = meal.location ? `${meal.location} · ` : ''
 
   if (status === 'serving') {
-    const elapsed = (end - endsIn - start) / (end - start)
+    // Both ends of the bar come from the countdowns rather than the clock
+    // times beside it: the wall clock span of a service running through a
+    // clock change is not the time that passes during it.
+    const total = endsIn - startsIn
+    const elapsed = total > 0 ? -startsIn / total : 1
     return {
       status: 'Serving now',
       name: meal.name,

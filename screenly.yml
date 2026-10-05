@@ -72,7 +72,9 @@ settings:
         help_text: |
           Hex colour for the highlights, e.g. #a06e47. Leave blank and the
           modern themes use your Screenly branding colour, while the classic
-          themes keep their own bronze or gold.
+          themes keep their own bronze or gold. Where the colour is the text
+          itself it is lightened or darkened if it would otherwise be too close
+          to the background to read.
         type: string
       schema_version: 1
   clock_format:

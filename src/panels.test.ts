@@ -12,6 +12,7 @@ import {
   type Display,
 } from './panels.js'
 import { scheduleFor } from './schedule.js'
+import { zonedNow } from './timezone.js'
 
 /** The real markup, so a renamed data attribute fails the tests. */
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
@@ -85,6 +86,20 @@ describe('the banner', () => {
     expect(atStart).toBeLessThan(0.3)
     expect(atEnd).toBeGreaterThan(0.85)
     expect(atEnd).toBeLessThanOrEqual(1)
+  })
+
+  test('the bar agrees with the time beside it across a clock change', () => {
+    // London goes forward at 01:00 on 29 March 2026, so a 00:00 to 03:00
+    // service runs for two hours. At 00:30 a quarter of it has gone, though
+    // the clock times either side of it still read three hours apart.
+    const night = parseMeals('Night service | 00:00 | 03:00 | Bar').meals
+    const instant = new Date('2026-03-29T00:30:00Z')
+    const sitting = scheduleFor(night, zonedNow(instant, 'Europe/London'))[0]!
+    const { progress, detail } = headlineText(sitting, DISPLAY)
+
+    expect(sitting.status).toBe('serving')
+    expect(progress).toBeCloseTo(0.25, 2)
+    expect(detail).toContain('1 h 30 left')
   })
 })
 

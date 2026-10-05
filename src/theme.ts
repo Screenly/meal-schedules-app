@@ -21,10 +21,6 @@ export const THEMES = [
 
 export type Theme = (typeof THEMES)[number]
 
-/** Text that stays legible on top of a filled accent. */
-const DARK_INK = '#0d1017'
-const LIGHT_INK = '#ffffff'
-
 function isTheme(value: string): value is Theme {
   return (THEMES as readonly string[]).includes(value)
 }
@@ -88,19 +84,54 @@ function contrast(one: string, other: string): number {
 }
 
 /**
- * Ink for text sitting on the accent, picked so the label stays readable
- * whether the brand colour is a pale yellow or a deep purple.
- *
- * The two candidates are compared directly rather than split at a luminance
- * cutoff. A cutoff gets the mid tones wrong: on #999999 it chose white at
- * 2.85:1 where the dark ink gives 6.68:1.
+ * The accent is only ever text at 36px bold or larger, which WCAG counts as
+ * large and asks 3:1 of. Holding it to the 4.5:1 of body text would repaint
+ * palettes that are fine: the classic bronze on cream is 4.11:1 and Screenly's
+ * own purple on the dark board 3.76:1.
  */
-export function inkOnAccent(accent: string): string {
+const TEXT_CONTRAST = 3
+
+/** Blend towards white or black, 0 for the colour itself and 1 for the target. */
+function mix(hex: string, towards: string, amount: number): string {
+  const channels = [1, 3, 5].map((offset) => {
+    const from = parseInt(hex.slice(offset, offset + 2), 16)
+    const to = parseInt(towards.slice(offset, offset + 2), 16)
+    return Math.round(from + (to - from) * amount)
+      .toString(16)
+      .padStart(2, '0')
+  })
+
+  return `#${channels.join('')}`
+}
+
+/**
+ * The accent, lightened or darkened until it can be read against the surface
+ * behind it.
+ *
+ * The accent is a brand colour typed into a settings box, and nothing stops it
+ * being the colour of the board it is written on: #0d1017 on the dark theme
+ * leaves the banner's status label and the serving meal's name invisible.
+ * Filling a shape with the accent is safe, so --accent is left alone and this
+ * is used only where the accent is the text itself.
+ */
+export function accentText(accent: string, surface: string): string {
   const colour = parseAccentColor(accent)
-  if (!colour) {
-    return DARK_INK
+  const behind = parseAccentColor(surface)
+  if (!colour || !behind) {
+    return accent
   }
-  return contrast(LIGHT_INK, colour) >= contrast(DARK_INK, colour)
-    ? LIGHT_INK
-    : DARK_INK
+  if (contrast(colour, behind) >= TEXT_CONTRAST) {
+    return colour
+  }
+
+  // Away from the surface: towards white on a dark board, black on a light one.
+  const towards = luminance(behind) > 0.18 ? '#000000' : '#ffffff'
+  for (let amount = 0.05; amount < 1; amount += 0.05) {
+    const candidate = mix(colour, towards, amount)
+    if (contrast(candidate, behind) >= TEXT_CONTRAST) {
+      return candidate
+    }
+  }
+
+  return towards
 }
