@@ -106,6 +106,26 @@ describe('reading a schedule', () => {
     expect(problems[2]).toContain('Missing a name')
   })
 
+  test('an extra pipe is reported, not quietly dropped', () => {
+    // The days would otherwise be lost and the meal served every day.
+    const { meals, problems } = parseMeals(
+      'Lunch | 12 | 15 | Oak Room | | Mon-Fri',
+    )
+
+    expect(meals).toHaveLength(0)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('too many fields')
+  })
+
+  test('a full five field line is still accepted', () => {
+    const { meals, problems } = parseMeals(
+      'Lunch | 12 | 15 | Oak Room | Mon-Fri',
+    )
+
+    expect(problems).toEqual([])
+    expect(meals[0]!.days).toEqual(new Set([1, 2, 3, 4, 5]))
+  })
+
   test('days limit a meal to part of the week', () => {
     const { meals } = parseMeals('Brunch | 9 | 13 | Terrace | Sat, Sun')
     expect(meals[0]!.days).toEqual(new Set([6, 0]))

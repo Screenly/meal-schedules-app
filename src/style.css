@@ -114,8 +114,15 @@
     padding: 34px 64px 26px;
   }
 
+  /*
+   * The width cap is what lets the fitter work. Centred in a column, as the
+   * classic and portrait mastheads are, this box would otherwise size to its
+   * own text: clientWidth would equal scrollWidth however long the name, the
+   * fitter would see nothing to shrink, and the name would run off both edges.
+   */
   .venue {
     height: 72px;
+    max-width: 100%;
     overflow: hidden;
     margin: 0;
     font-family: var(--font-display);

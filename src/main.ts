@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       mountDevSettings({
         current: () => {
           const instant = now()
-          return { instant, local: zonedNow(instant, timeZone) }
+          return { instant, local: zonedNow(instant, timeZone), timeZone }
         },
         onChange: draw,
       })

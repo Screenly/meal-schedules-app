@@ -135,10 +135,20 @@ export function parseTimeOfDay(text: string): number | null {
   return total > MINUTES_PER_DAY ? null : total
 }
 
+/** name | start | end | where | days */
+const FIELDS = 5
+
 function parseLine(line: string): { meal?: Meal; problem?: string } {
-  const [name, start, end, location, days] = line
-    .split('|')
-    .map((f) => f.trim())
+  const fields = line.split('|').map((field) => field.trim())
+  const [name, start, end, location, days] = fields
+
+  // An extra pipe is a typo, and dropping what follows it loses the days a meal
+  // is served on while leaving the line looking accepted.
+  if (fields.length > FIELDS) {
+    return {
+      problem: `${name || 'A meal'} has too many fields: name, start, end, where, days`,
+    }
+  }
 
   if (!name) {
     return { problem: `Missing a name: "${line.trim()}"` }

@@ -20,17 +20,15 @@ describe('scrubbing to a weekday and time', () => {
   const reference = new Date('2026-10-07T12:00:00Z') // a Wednesday
 
   test('lands on the asked for weekday and time', () => {
-    const current = zonedNow(reference, 'UTC')
     const target = { minutes: 8 * 60 + 30, weekday: 6 }
-    const landed = zonedNow(instantAt(reference, current, target), 'UTC')
+    const landed = zonedNow(instantAt(reference, 'UTC', target), 'UTC')
 
     expect(landed).toEqual(target)
   })
 
   test('works backwards through the week as well', () => {
-    const current = zonedNow(reference, 'UTC')
     const target = { minutes: 22 * 60, weekday: 0 }
-    const landed = zonedNow(instantAt(reference, current, target), 'UTC')
+    const landed = zonedNow(instantAt(reference, 'UTC', target), 'UTC')
 
     expect(landed).toEqual(target)
   })
@@ -38,8 +36,7 @@ describe('scrubbing to a weekday and time', () => {
   test('steps the short way round the week', () => {
     // From a Sunday, Saturday is yesterday, not six days off.
     const sunday = new Date('2026-10-04T12:00:00Z')
-    const current = zonedNow(sunday, 'UTC')
-    const saturday = instantAt(sunday, current, {
+    const saturday = instantAt(sunday, 'UTC', {
       minutes: 12 * 60,
       weekday: 6,
     })
@@ -50,8 +47,7 @@ describe('scrubbing to a weekday and time', () => {
 
   test('and the other way across the same boundary', () => {
     const saturday = new Date('2026-10-10T12:00:00Z')
-    const current = zonedNow(saturday, 'UTC')
-    const sunday = instantAt(saturday, current, {
+    const sunday = instantAt(saturday, 'UTC', {
       minutes: 12 * 60,
       weekday: 0,
     })
@@ -62,10 +58,9 @@ describe('scrubbing to a weekday and time', () => {
 
   test('never steps more than three days either way', () => {
     const reference = new Date('2026-10-07T12:00:00Z')
-    const current = zonedNow(reference, 'UTC')
 
     for (let weekday = 0; weekday < 7; weekday += 1) {
-      const landed = instantAt(reference, current, {
+      const landed = instantAt(reference, 'UTC', {
         minutes: 12 * 60,
         weekday,
       })
@@ -77,10 +72,58 @@ describe('scrubbing to a weekday and time', () => {
   })
 
   test('holds in a timezone away from UTC', () => {
-    const current = zonedNow(reference, 'Asia/Dubai')
     const target = { minutes: 60, weekday: 5 }
-    const landed = zonedNow(instantAt(reference, current, target), 'Asia/Dubai')
+    const landed = zonedNow(
+      instantAt(reference, 'Asia/Dubai', target),
+      'Asia/Dubai',
+    )
 
     expect(landed).toEqual(target)
+  })
+})
+
+describe('scrubbing across a clock change', () => {
+  test('lands on the asked for time when the clocks go forward', () => {
+    // London's clocks go forward in the small hours of Sunday 29 March 2026,
+    // so that local day is 23 hours long.
+    const saturday = new Date('2026-03-28T12:00:00Z')
+    const target = { minutes: 12 * 60, weekday: 0 }
+    const landed = zonedNow(
+      instantAt(saturday, 'Europe/London', target),
+      'Europe/London',
+    )
+
+    expect(landed).toEqual(target)
+  })
+
+  test('and when they go back', () => {
+    // 25 October 2026 is 25 hours long in London.
+    const saturday = new Date('2026-10-24T12:00:00Z')
+    const target = { minutes: 12 * 60, weekday: 0 }
+    const landed = zonedNow(
+      instantAt(saturday, 'Europe/London', target),
+      'Europe/London',
+    )
+
+    expect(landed).toEqual(target)
+  })
+
+  test('every weekday and hour of a transition week is reachable', () => {
+    const reference = new Date('2026-03-25T12:00:00Z')
+
+    for (let weekday = 0; weekday < 7; weekday += 1) {
+      for (const hour of [0, 6, 12, 18, 23]) {
+        const target = { minutes: hour * 60, weekday }
+        const landed = zonedNow(
+          instantAt(reference, 'Europe/London', target),
+          'Europe/London',
+        )
+
+        // 01:00 on the Sunday does not exist; everything else is exact.
+        if (!(weekday === 0 && hour === 0)) {
+          expect(landed).toEqual(target)
+        }
+      }
+    }
   })
 })

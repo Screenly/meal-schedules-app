@@ -218,7 +218,7 @@ const TEMPLATE = `
 
 export interface DevSettingsOptions {
   /** The moment the board is drawing, for seeding the day and time controls. */
-  current: () => { instant: Date; local: Now }
+  current: () => { instant: Date; local: Now; timeZone: string }
   /** Redraw after a setting or the clock has changed. */
   onChange: () => void
 }
@@ -266,9 +266,9 @@ export class DevSettings extends HTMLElement {
     }
 
     const scrub = () => {
-      const { instant, local } = this.options.current()
+      const { instant, timeZone } = this.options.current()
       setClockOverride(
-        instantAt(instant, local, {
+        instantAt(instant, timeZone, {
           minutes: Number(this.minutes.value),
           weekday: Number(this.weekday.value),
         }),

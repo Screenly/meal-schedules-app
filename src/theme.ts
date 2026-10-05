@@ -79,14 +79,28 @@ function luminance(hex: string): number {
   return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!
 }
 
+/** WCAG contrast ratio between two colours, 1:1 to 21:1. */
+function contrast(one: string, other: string): number {
+  const [brighter, darker] = [luminance(one), luminance(other)].sort(
+    (a, b) => b - a,
+  )
+  return (brighter! + 0.05) / (darker! + 0.05)
+}
+
 /**
- * Ink for text sitting on the accent, picked so the filled chip stays readable
+ * Ink for text sitting on the accent, picked so the label stays readable
  * whether the brand colour is a pale yellow or a deep purple.
+ *
+ * The two candidates are compared directly rather than split at a luminance
+ * cutoff. A cutoff gets the mid tones wrong: on #999999 it chose white at
+ * 2.85:1 where the dark ink gives 6.68:1.
  */
 export function inkOnAccent(accent: string): string {
   const colour = parseAccentColor(accent)
   if (!colour) {
     return DARK_INK
   }
-  return luminance(colour) > 0.42 ? DARK_INK : LIGHT_INK
+  return contrast(LIGHT_INK, colour) >= contrast(DARK_INK, colour)
+    ? LIGHT_INK
+    : DARK_INK
 }
