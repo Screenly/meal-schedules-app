@@ -70,8 +70,9 @@ settings:
       properties:
         advanced: true
         help_text: |
-          Hex colour for the highlights, e.g. #a06e47. Leave blank to use your
-          Screenly branding colour, and failing that the theme's own.
+          Hex colour for the highlights, e.g. #a06e47. Leave blank and the
+          modern themes use your Screenly branding colour, while the classic
+          themes keep their own bronze or gold.
         type: string
       schema_version: 1
   clock_format:

@@ -1,5 +1,6 @@
 /**
- * A development panel for driving the board: every setting, plus the clock.
+ * A development panel for driving the board: the theme, the clock format, the
+ * accent, the venue, the schedule, and the day and time it is drawing.
  *
  * It lives in a shadow root. The board is themed down to its type and colour
  * through custom properties on the document, and a panel sitting in the same

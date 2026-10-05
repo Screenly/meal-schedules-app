@@ -245,3 +245,20 @@ export function fitDynamicText(): void {
   )
   fitBoardRows()
 }
+
+/**
+ * What the screen says when the app could not start at all: the operator needs
+ * to see that something is wrong, not a board that happens to be empty.
+ */
+export function renderFailure(error: unknown): void {
+  const reason = error instanceof Error ? error.message : String(error)
+
+  element<HTMLElement>('[data-headline]').hidden = true
+  element<HTMLElement>('[data-board]').innerHTML = `
+    <div class="empty">
+      <div class="empty-title">Meal Schedules could not start</div>
+      <div class="empty-hint">${escapeText(reason)}</div>
+    </div>
+  `
+  renderNotice(['Check the app settings for this screen'])
+}

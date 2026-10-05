@@ -16,6 +16,7 @@ import { parseMeals } from './meals.js'
 import {
   fitDynamicText,
   renderBoard,
+  renderFailure,
   renderHeadline,
   renderNotice,
   renderToday,
@@ -150,7 +151,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       resizeTimer = window.setTimeout(draw, 150)
     })
   } catch (error) {
+    // Say so on the screen before calling it ready. A board that comes up blank
+    // and reports itself fine is a deployment that looks healthy and is not.
     console.error('Failed to initialize Meal Schedules', error)
+    renderFailure(error)
   }
 
   signalReady()

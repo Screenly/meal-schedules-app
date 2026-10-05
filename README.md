@@ -14,9 +14,10 @@ The sitting in progress is the largest thing on the screen, with a bar running
 down as the service does. When nothing is being served the banner counts down to
 the next sitting instead.
 
-Below that, the day's sittings with their times and where they are. What is
-being served is picked out, what is next is marked, and anything finished fades
-back. A service that runs past midnight stays on the board into the small hours.
+Below that, the rest of the day's sittings with their times and where they are.
+Whatever the banner is showing is left out of the list rather than repeated in
+it, and anything finished fades back. A service that runs past midnight stays on
+the board into the small hours.
 
 Different days can have different sittings, so a weekday business lunch and a
 weekend brunch both appear only when they are on.
@@ -43,14 +44,14 @@ dropped, because a missing meal is worse than a visible complaint about a typo.
 
 ## Configuration
 
-| Setting             | Description                                                              | Required | Default                                        |
-| ------------------- | ------------------------------------------------------------------------ | -------- | ---------------------------------------------- |
-| `meals`             | The schedule, one meal per line                                          | No       | A sample day                                   |
-| `venue_name`        | Shown at the top, e.g. `Hartwell House`                                  | No       | Screen's own location                          |
-| `board_theme`       | `modern-dark`, `modern-light`, `classic-dark`, `classic-light` or `auto` | No       | `modern-dark`                                  |
-| `accent_color`      | Hex colour for the highlights, e.g. `#a06e47`                            | No       | Screenly branding colour, else the theme's own |
-| `clock_format`      | `24h` or `12h`                                                           | No       | `24h`                                          |
-| `override_timezone` | IANA timezone, e.g. `Europe/London`                                      | No       | From coordinates                               |
+| Setting             | Description                                                              | Required | Default                                         |
+| ------------------- | ------------------------------------------------------------------------ | -------- | ----------------------------------------------- |
+| `meals`             | The schedule, one meal per line                                          | No       | A sample day                                    |
+| `venue_name`        | Shown at the top, e.g. `Hartwell House`                                  | No       | Screen's own location                           |
+| `board_theme`       | `modern-dark`, `modern-light`, `classic-dark`, `classic-light` or `auto` | No       | `modern-dark`                                   |
+| `accent_color`      | Hex colour for the highlights, e.g. `#a06e47`                            | No       | Branding on modern themes, else the theme's own |
+| `clock_format`      | `24h` or `12h`                                                           | No       | `24h`                                           |
+| `override_timezone` | IANA timezone, e.g. `Europe/London`                                      | No       | From coordinates                                |
 
 ## Reading it from a distance
 

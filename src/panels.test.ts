@@ -6,6 +6,7 @@ import { parseMeals } from './meals.js'
 import {
   headlineText,
   renderBoard,
+  renderFailure,
   renderHeadline,
   renderNotice,
   type Display,
@@ -163,5 +164,34 @@ describe('the notice', () => {
       false,
     )
     expect(text('[data-notice]')).toContain('not a time')
+  })
+})
+
+describe('when the app cannot start', () => {
+  beforeEach(mountPage)
+
+  test('says so on the screen rather than coming up blank', () => {
+    renderFailure(new Error('Unknown timezone: Mars/Olympus'))
+
+    expect(text('.empty-title')).toContain('could not start')
+    expect(text('.empty-hint')).toContain('Mars/Olympus')
+    expect(document.querySelector<HTMLElement>('[data-headline]')!.hidden).toBe(
+      true,
+    )
+    expect(document.querySelector<HTMLElement>('[data-notice]')!.hidden).toBe(
+      false,
+    )
+  })
+
+  test('copes with something thrown that is not an Error', () => {
+    renderFailure('settings unreadable')
+    expect(text('.empty-hint')).toContain('settings unreadable')
+  })
+
+  test('escapes whatever the message happens to contain', () => {
+    renderFailure(new Error('<img onerror=alert(1)>'))
+    expect(document.querySelector('[data-board]')!.innerHTML).not.toContain(
+      '<img',
+    )
   })
 })
