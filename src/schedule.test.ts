@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { MINUTES_PER_DAY, parseMeals } from './meals.js'
 import { zonedNow } from './timezone.js'
-import { boardFor, headlineSitting, listFor, scheduleFor } from './schedule.js'
+import {
+  BOARD_CAPACITY,
+  boardFor,
+  headlineSitting,
+  listFor,
+  scheduleFor,
+} from './schedule.js'
 
 const HOTEL = parseMeals(`
   Breakfast | 06:30 | 10:30 | Garden Restaurant
@@ -187,17 +193,31 @@ describe('trimming the board to what fits', () => {
     ])
   })
 
-  test('never drops what is being served or what is next', () => {
+  test('keeps what is being served and what is next where they fit', () => {
     for (const meals of [busy, resort]) {
       for (let hour = 0; hour < 24; hour += 1) {
         const now = { minutes: hour * 60, weekday: WEDNESDAY }
         const full = scheduleFor(meals, now)
         const board = boardFor(full)
+        const essential = full.filter(
+          (sitting) =>
+            sitting.status === 'serving' || sitting.status === 'next',
+        )
 
-        for (const sitting of full) {
-          if (sitting.status === 'serving' || sitting.status === 'next') {
+        // Never more than the room there is: a board that overruns its box
+        // takes the banner above it with it.
+        expect(board.length).toBeLessThanOrEqual(BOARD_CAPACITY)
+
+        if (essential.length <= BOARD_CAPACITY) {
+          for (const sitting of essential) {
             expect(board).toContainEqual(sitting)
           }
+        }
+
+        // Whether or not there is room to spare, what is coming is kept.
+        const next = full.find((sitting) => sitting.status === 'next')
+        if (next) {
+          expect(board).toContainEqual(next)
         }
       }
     }
@@ -241,14 +261,25 @@ describe('what the board keeps when there is not room for everything', () => {
     expect(board.find((sitting) => sitting.status === 'next')).toBeDefined()
   })
 
-  test('more essential sittings than room keeps them all', () => {
-    const board = boardFor(
-      scheduleFor(resort, { minutes: 11 * 60 + 30, weekday: WEDNESDAY }),
-      4,
-    )
+  test('more open at once than there is room for is still trimmed', () => {
+    // All seven of the resort's outlets are being served or are next at 11:30.
+    // Keeping them all used to be the kinder failure, back when the rows could
+    // shrink to hold them; they stop at a readable size, so it became an
+    // overflow into the banner instead.
+    const full = scheduleFor(resort, {
+      minutes: 11 * 60 + 30,
+      weekday: WEDNESDAY,
+    })
+    const board = boardFor(full, 4)
 
-    expect(board).toHaveLength(7)
+    expect(
+      full.filter(
+        (sitting) => sitting.status === 'serving' || sitting.status === 'next',
+      ),
+    ).toHaveLength(7)
+    expect(board).toHaveLength(4)
     expect(board.every((sitting) => sitting.status !== 'finished')).toBe(true)
+    expect(board.find((sitting) => sitting.status === 'next')).toBeDefined()
   })
 
   test('the room left over goes to what is coming before what is over', () => {

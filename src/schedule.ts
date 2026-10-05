@@ -201,9 +201,14 @@ function isEssential(sitting: ScheduledMeal): boolean {
  * another and fails where they overlap: a resort with six outlets open at once
  * pushed the next sitting off the end of the list.
  *
- * Such a resort can also have more essential sittings than the capacity. They
- * all stay and the rows shrink, which is the better failure of the two, since
- * a small row can be read and a missing one cannot.
+ * Such a resort can have more sittings open at once than the board has room
+ * for even at its smallest row. Keeping them all and letting the rows shrink
+ * was the better failure while the rows could shrink without limit; they
+ * cannot, so it became a guaranteed overflow, and a centred list that overruns
+ * its box takes the banner with it. The capacity is a measurement of the room
+ * there is, so nothing is gained by exceeding it: what is coming next is kept,
+ * since nothing else on the board says it, and then what is being served, in
+ * the order it appears.
  */
 export function boardFor(
   schedule: ScheduledMeal[],
@@ -218,7 +223,10 @@ export function boardFor(
   const room = Math.max(0, capacity - essential.length)
 
   const keep = new Set([
-    ...essential,
+    ...[
+      ...essential.filter((sitting) => sitting.status === 'next'),
+      ...essential.filter((sitting) => sitting.status !== 'next'),
+    ].slice(0, capacity),
     ...[
       ...optional.filter((sitting) => sitting.status === 'later'),
       ...optional.filter((sitting) => sitting.status === 'finished').reverse(),

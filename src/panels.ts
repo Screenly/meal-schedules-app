@@ -192,8 +192,12 @@ const ROW_LOCATION_MIN_SIZE = 20
 const ROW = { padding: 26, name: 68, time: 64, location: 34, gap: 6 }
 const ROW_HEIGHT =
   ROW.padding * 2 + ROW.name * 1.1 + ROW.gap + ROW.location * 1.2 + 2
-/** Below this the board stops being readable from across the room. */
-const MIN_ROW_SCALE = 0.55
+/**
+ * Below this the board stops being readable from across the room. It is the
+ * same point as the floor on a row's own text: 68px of name at this scale is
+ * the 30px that fitter will not go under, so the two give way together.
+ */
+const MIN_ROW_SCALE = 0.45
 
 /**
  * How many rows the space left for the board can hold at the smallest size
