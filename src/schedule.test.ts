@@ -393,6 +393,46 @@ describe('countdowns across a clock change', () => {
   })
 })
 
+describe('where a status changes', () => {
+  const lunch = parseMeals('Lunch | 12:00 | 15:00 | Oak Room').meals
+  const statusAt = (hour: number, minute: number, second: number) =>
+    scheduleFor(
+      lunch,
+      zonedNow(new Date(Date.UTC(2026, 5, 10, hour, minute, second)), 'UTC'),
+    )[0]!
+
+  test('on the minute it was set to, not within half a minute of it', () => {
+    // Rounding the countdown to whole minutes opened a sitting up to thirty
+    // seconds early and closed it thirty seconds early too.
+    expect(statusAt(11, 59, 31).status).toBe('next')
+    expect(statusAt(11, 59, 59).status).toBe('next')
+    expect(statusAt(12, 0, 0).status).toBe('serving')
+
+    expect(statusAt(14, 59, 31).status).toBe('serving')
+    expect(statusAt(14, 59, 59).status).toBe('serving')
+    expect(statusAt(15, 0, 0).status).toBe('finished')
+  })
+
+  test('the countdown measures to the minute, seconds and all', () => {
+    expect(statusAt(11, 59, 30).startsIn).toBeCloseTo(0.5, 5)
+    expect(statusAt(11, 45, 0).startsIn).toBe(15)
+  })
+
+  test('the jump is found to the millisecond whenever it is asked about', () => {
+    // London jumps at exactly 01:00:00Z. A bisection stopping a minute wide
+    // answered with whatever second the question was asked at.
+    const gapped = parseMeals('Night service | 00:00 | 01:30 | Bar').meals
+
+    for (const second of [0, 7, 23, 41, 59]) {
+      const at = new Date(Date.UTC(2026, 2, 29, 0, 45, second))
+      const sitting = scheduleFor(gapped, zonedNow(at, 'Europe/London'))[0]!
+      const endsAt = at.getTime() + sitting.endsIn * 60_000
+
+      expect(endsAt).toBe(Date.UTC(2026, 2, 29, 1, 0, 0))
+    }
+  })
+})
+
 describe('a local time the clocks skip or repeat', () => {
   test('a time the clocks skip counts to the jump, never backwards', () => {
     // London goes from 01:00 to 02:00 on 29 March 2026, so 01:30 never

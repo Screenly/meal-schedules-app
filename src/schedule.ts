@@ -10,8 +10,14 @@ import { MINUTES_PER_DAY, type Meal } from './meals.js'
 import { instantForLocal } from './timezone.js'
 
 const DAY_MS = 86_400_000
+const MS_PER_MINUTE = 60_000
 
-/** Minutes until a local time measured from today's midnight actually arrives. */
+/**
+ * Minutes until a local time measured from today's midnight actually arrives,
+ * fractions and all: the moment the clocks change is not on a minute boundary
+ * of its own, and rounding here would move a status up to half a minute off
+ * the time it was set to. `formatDuration` rounds for the screen.
+ */
 function minutesUntil(localMinutes: number, now: Now): number {
   if (!now.instant || !now.timeZone) {
     return localMinutes - now.minutes
@@ -23,7 +29,13 @@ function minutesUntil(localMinutes: number, now: Now): number {
   // just gone. Move the reference alongside it first: the shifted instant
   // always falls on the weekday being asked for, so the step from there is
   // none and only the time of day is left to settle.
-  const reference = new Date(now.instant.getTime() + dayShift * DAY_MS)
+  // Floored to the minute, so that what comes back is the instant the clocks
+  // read that time rather than that time with the seconds it happens to be
+  // now. Only then does a countdown measure to the start of the minute a
+  // sitting was set to, and the two routes below agree about where that is.
+  const startOfMinute =
+    now.instant.getTime() - (now.instant.getTime() % MS_PER_MINUTE)
+  const reference = new Date(startOfMinute + dayShift * DAY_MS)
   const instant = instantForLocal(
     reference,
     now.timeZone,
@@ -37,7 +49,7 @@ function minutesUntil(localMinutes: number, now: Now): number {
     'first',
   )
 
-  return Math.round((instant.getTime() - now.instant.getTime()) / 60000)
+  return (instant.getTime() - now.instant.getTime()) / 60000
 }
 
 export type MealStatus = 'serving' | 'next' | 'later' | 'finished'

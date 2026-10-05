@@ -105,7 +105,10 @@ function firstInstantReaching(
     return near
   }
 
-  while (after - before > MS_PER_MINUTE) {
+  // To the millisecond. A minute of slack here is a minute of slack in every
+  // status and countdown that crosses the change, and this runs only when one
+  // is nearby.
+  while (after - before > 1) {
     const middle = before + Math.floor((after - before) / 2)
     if (reached(middle)) {
       after = middle

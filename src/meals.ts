@@ -3,7 +3,8 @@
  *
  * The people who edit this are front of house staff typing into a settings
  * box, not developers, so the format is one meal per line with pipes between
- * the fields and everything after the name optional:
+ * the fields: a name and the two times it runs between, then where it is
+ * served and which days, either of which can be left off.
  *
  *   Breakfast | 06:30 | 10:30 | Garden Restaurant | Mon-Fri
  *   Lunch     | 12:00 | 15:00
