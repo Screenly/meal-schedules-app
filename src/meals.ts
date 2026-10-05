@@ -49,13 +49,22 @@ const DAY_GROUPS: Record<string, number[]> = {
   weekends: [0, 6],
 }
 
+/**
+ * The day a token names, or null when it names none or more than one. "S"
+ * could be Sunday or Saturday and "T" either Tuesday or Thursday, and guessing
+ * puts a meal on the wrong days without anyone being told.
+ */
 function dayIndex(token: string): number | null {
   const cleaned = token.trim().toLowerCase()
   if (!cleaned) {
     return null
   }
-  const index = DAY_NAMES.findIndex((day) => day.startsWith(cleaned))
-  return index === -1 ? null : index
+
+  const matches = DAY_NAMES.map((day, index) => ({ day, index })).filter(
+    ({ day }) => day.startsWith(cleaned),
+  )
+
+  return matches.length === 1 ? matches[0]!.index : null
 }
 
 /**

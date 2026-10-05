@@ -20,6 +20,7 @@ import {
   renderHeadline,
   renderNotice,
   renderToday,
+  rowCapacity,
   type Display,
 } from './panels.js'
 import { listFor, scheduleFor } from './schedule.js'
@@ -97,7 +98,6 @@ function render(settings: Settings): void {
   const instant = now()
   const { meals, problems } = parseMeals(settings.meals)
   const schedule = scheduleFor(meals, zonedNow(instant, settings.timeZone))
-  const board = listFor(schedule)
 
   renderToday(
     instant,
@@ -107,7 +107,12 @@ function render(settings: Settings): void {
     formatLongDate(instant, settings.display.locale, settings.timeZone),
   )
   renderHeadline(schedule, settings.display)
-  renderBoard(board, settings.display, meals.length > 0)
+  // The banner is drawn first: what is left over decides how many rows fit.
+  renderBoard(
+    listFor(schedule, rowCapacity()),
+    settings.display,
+    meals.length > 0,
+  )
   renderNotice(problems)
 
   fitDynamicText()

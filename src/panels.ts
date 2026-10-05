@@ -11,7 +11,11 @@ import {
   formatDuration,
   formatRange,
 } from './format.js'
-import { headlineSitting, type ScheduledMeal } from './schedule.js'
+import {
+  BOARD_CAPACITY,
+  headlineSitting,
+  type ScheduledMeal,
+} from './schedule.js'
 
 /**
  * The floors the fitter will not shrink past. The size it starts from is read
@@ -171,10 +175,28 @@ export function renderToday(
 }
 
 /** A row at full size, in reference pixels, as the stylesheet lays it out. */
-const ROW = { padding: 26, name: 68, time: 64, location: 34 }
-const ROW_HEIGHT = ROW.padding * 2 + ROW.name * 1.1 + ROW.location * 1.2 + 2
+const ROW = { padding: 26, name: 68, time: 64, location: 34, gap: 6 }
+const ROW_HEIGHT =
+  ROW.padding * 2 + ROW.name * 1.1 + ROW.gap + ROW.location * 1.2 + 2
 /** Below this the board stops being readable from across the room. */
 const MIN_ROW_SCALE = 0.55
+
+/**
+ * How many rows the space left for the board can hold at the smallest size
+ * still worth reading.
+ *
+ * Trimming to a fixed number and hoping it fits does not work: the board is
+ * centred, so rows that overrun spill upwards into the banner as well as off
+ * the bottom. Ask the layout instead, before the rows are drawn.
+ */
+export function rowCapacity(): number {
+  const height = element<HTMLElement>('[data-board]').clientHeight
+  if (!height) {
+    return BOARD_CAPACITY
+  }
+
+  return Math.max(1, Math.floor(height / (ROW_HEIGHT * MIN_ROW_SCALE)))
+}
 
 /**
  * Size the rows to the space left for them.
@@ -202,6 +224,7 @@ export function fitBoardRows(): void {
       '--row-location',
       `${(ROW.location * scale).toFixed(1)}px`,
     )
+    board.style.setProperty('--row-gap', `${(ROW.gap * scale).toFixed(1)}px`)
   }
 
   // Rows are separated by a hairline each, which the row height does not cover.

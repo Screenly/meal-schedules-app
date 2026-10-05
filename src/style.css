@@ -227,6 +227,7 @@
     --row-name: 68px;
     --row-time: 64px;
     --row-location: 34px;
+    --row-gap: 6px;
   }
 
   .sitting {
@@ -259,7 +260,7 @@
   }
 
   .sitting-location {
-    margin-top: 6px;
+    margin-top: var(--row-gap);
     color: var(--ink-muted);
     font-size: var(--row-location);
   }

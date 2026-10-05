@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { instantAt, isClockOverridden, now, setClockOverride } from './clock.js'
-import { zonedNow } from './timezone.js'
+import { isClockOverridden, now, setClockOverride } from './clock.js'
+import { instantForLocal, zonedNow } from './timezone.js'
 
 describe('the clock', () => {
   test('follows the system until it is overridden', () => {
@@ -21,22 +21,22 @@ describe('scrubbing to a weekday and time', () => {
 
   test('lands on the asked for weekday and time', () => {
     const target = { minutes: 8 * 60 + 30, weekday: 6 }
-    const landed = zonedNow(instantAt(reference, 'UTC', target), 'UTC')
+    const landed = zonedNow(instantForLocal(reference, 'UTC', target), 'UTC')
 
-    expect(landed).toEqual(target)
+    expect(landed).toMatchObject(target)
   })
 
   test('works backwards through the week as well', () => {
     const target = { minutes: 22 * 60, weekday: 0 }
-    const landed = zonedNow(instantAt(reference, 'UTC', target), 'UTC')
+    const landed = zonedNow(instantForLocal(reference, 'UTC', target), 'UTC')
 
-    expect(landed).toEqual(target)
+    expect(landed).toMatchObject(target)
   })
 
   test('steps the short way round the week', () => {
     // From a Sunday, Saturday is yesterday, not six days off.
     const sunday = new Date('2026-10-04T12:00:00Z')
-    const saturday = instantAt(sunday, 'UTC', {
+    const saturday = instantForLocal(sunday, 'UTC', {
       minutes: 12 * 60,
       weekday: 6,
     })
@@ -47,7 +47,7 @@ describe('scrubbing to a weekday and time', () => {
 
   test('and the other way across the same boundary', () => {
     const saturday = new Date('2026-10-10T12:00:00Z')
-    const sunday = instantAt(saturday, 'UTC', {
+    const sunday = instantForLocal(saturday, 'UTC', {
       minutes: 12 * 60,
       weekday: 0,
     })
@@ -60,7 +60,7 @@ describe('scrubbing to a weekday and time', () => {
     const reference = new Date('2026-10-07T12:00:00Z')
 
     for (let weekday = 0; weekday < 7; weekday += 1) {
-      const landed = instantAt(reference, 'UTC', {
+      const landed = instantForLocal(reference, 'UTC', {
         minutes: 12 * 60,
         weekday,
       })
@@ -74,11 +74,11 @@ describe('scrubbing to a weekday and time', () => {
   test('holds in a timezone away from UTC', () => {
     const target = { minutes: 60, weekday: 5 }
     const landed = zonedNow(
-      instantAt(reference, 'Asia/Dubai', target),
+      instantForLocal(reference, 'Asia/Dubai', target),
       'Asia/Dubai',
     )
 
-    expect(landed).toEqual(target)
+    expect(landed).toMatchObject(target)
   })
 })
 
@@ -89,11 +89,11 @@ describe('scrubbing across a clock change', () => {
     const saturday = new Date('2026-03-28T12:00:00Z')
     const target = { minutes: 12 * 60, weekday: 0 }
     const landed = zonedNow(
-      instantAt(saturday, 'Europe/London', target),
+      instantForLocal(saturday, 'Europe/London', target),
       'Europe/London',
     )
 
-    expect(landed).toEqual(target)
+    expect(landed).toMatchObject(target)
   })
 
   test('and when they go back', () => {
@@ -101,11 +101,11 @@ describe('scrubbing across a clock change', () => {
     const saturday = new Date('2026-10-24T12:00:00Z')
     const target = { minutes: 12 * 60, weekday: 0 }
     const landed = zonedNow(
-      instantAt(saturday, 'Europe/London', target),
+      instantForLocal(saturday, 'Europe/London', target),
       'Europe/London',
     )
 
-    expect(landed).toEqual(target)
+    expect(landed).toMatchObject(target)
   })
 
   test('the hour a forward change skips returns the nearest real instant', () => {
@@ -114,7 +114,7 @@ describe('scrubbing across a clock change', () => {
     const friday = new Date('2026-03-27T12:00:00Z')
     const asked = { minutes: 60, weekday: 0 }
     const landed = zonedNow(
-      instantAt(friday, 'Europe/London', asked),
+      instantForLocal(friday, 'Europe/London', asked),
       'Europe/London',
     )
 
@@ -128,11 +128,11 @@ describe('scrubbing across a clock change', () => {
     for (const hour of [0, 2, 3, 12, 23]) {
       const target = { minutes: hour * 60, weekday: 0 }
       const landed = zonedNow(
-        instantAt(friday, 'Europe/London', target),
+        instantForLocal(friday, 'Europe/London', target),
         'Europe/London',
       )
 
-      expect(landed).toEqual(target)
+      expect(landed).toMatchObject(target)
     }
   })
 
@@ -143,11 +143,11 @@ describe('scrubbing across a clock change', () => {
     for (let hour = 0; hour < 24; hour += 1) {
       const target = { minutes: hour * 60, weekday: 0 }
       const landed = zonedNow(
-        instantAt(friday, 'Europe/London', target),
+        instantForLocal(friday, 'Europe/London', target),
         'Europe/London',
       )
 
-      expect(landed).toEqual(target)
+      expect(landed).toMatchObject(target)
     }
   })
 })

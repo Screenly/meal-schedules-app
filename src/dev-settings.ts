@@ -13,7 +13,8 @@
  * this in it.
  */
 
-import { instantAt, isClockOverridden, setClockOverride } from './clock.js'
+import { isClockOverridden, setClockOverride } from './clock.js'
+import { instantForLocal } from './timezone.js'
 import { THEMES } from './theme.js'
 import type { Now } from './schedule.js'
 
@@ -268,7 +269,7 @@ export class DevSettings extends HTMLElement {
     const scrub = () => {
       const { instant, timeZone } = this.options.current()
       setClockOverride(
-        instantAt(instant, timeZone, {
+        instantForLocal(instant, timeZone, {
           minutes: Number(this.minutes.value),
           weekday: Number(this.weekday.value),
         }),

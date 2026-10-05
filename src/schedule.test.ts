@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { parseMeals } from './meals.js'
+import { zonedNow } from './timezone.js'
 import { boardFor, headlineSitting, listFor, scheduleFor } from './schedule.js'
 
 const HOTEL = parseMeals(`
@@ -308,5 +309,55 @@ describe('the list under the banner', () => {
       const featured = headlineSitting(schedule)
       expect(listFor(schedule)).not.toContain(featured)
     }
+  })
+
+  test('takes the room it is given', () => {
+    // The board asks the layout how many rows fit before it fills them, so a
+    // screen with less space than the default has to be honoured.
+    const schedule = scheduleFor(HOTEL, {
+      minutes: 9 * 60,
+      weekday: WEDNESDAY,
+    })
+
+    expect(listFor(schedule, 2)).toHaveLength(2)
+    expect(listFor(schedule, 1)).toHaveLength(1)
+  })
+})
+
+describe('countdowns across a clock change', () => {
+  const nightService = parseMeals('Night service | 00:00 | 03:00 | Bar').meals
+
+  test('count the time that will actually elapse', () => {
+    // London's clocks go forward at 01:00 on 29 March 2026, so the three hour
+    // service runs for two.
+    const at = new Date('2026-03-29T00:30:00Z')
+    const board = scheduleFor(nightService, zonedNow(at, 'Europe/London'))
+
+    expect(board[0]!.endsIn).toBe(90)
+  })
+
+  test('and when the clocks go back', () => {
+    // 25 October 2026 repeats an hour, so the same service runs for four.
+    // London is still on summer time at this point, so 00:30 local is 23:30Z.
+    const at = new Date('2026-10-24T23:30:00Z')
+    const board = scheduleFor(nightService, zonedNow(at, 'Europe/London'))
+
+    expect(board[0]!.endsIn).toBe(210)
+  })
+
+  test('an ordinary day is unaffected', () => {
+    const at = new Date('2026-03-22T00:30:00Z')
+    const board = scheduleFor(nightService, zonedNow(at, 'Europe/London'))
+
+    expect(board[0]!.endsIn).toBe(150)
+  })
+
+  test('a start is counted the same way', () => {
+    const evening = parseMeals('Breakfast | 07:00 | 10:00').meals
+    const at = new Date('2026-03-29T00:30:00Z')
+    const board = scheduleFor(evening, zonedNow(at, 'Europe/London'))
+
+    // 00:30 GMT to 07:00 BST is five and a half hours, not six and a half.
+    expect(board[0]!.startsIn).toBe(330)
   })
 })

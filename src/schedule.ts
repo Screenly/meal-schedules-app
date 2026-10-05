@@ -7,6 +7,22 @@
  */
 
 import { MINUTES_PER_DAY, type Meal } from './meals.js'
+import { instantForLocal } from './timezone.js'
+
+/** Minutes until a local time measured from today's midnight actually arrives. */
+function minutesUntil(localMinutes: number, now: Now): number {
+  if (!now.instant || !now.timeZone) {
+    return localMinutes - now.minutes
+  }
+
+  const dayShift = Math.floor(localMinutes / MINUTES_PER_DAY)
+  const instant = instantForLocal(now.instant, now.timeZone, {
+    minutes: localMinutes - dayShift * MINUTES_PER_DAY,
+    weekday: (now.weekday + dayShift + 7) % 7,
+  })
+
+  return Math.round((instant.getTime() - now.instant.getTime()) / 60000)
+}
 
 export type MealStatus = 'serving' | 'next' | 'later' | 'finished'
 
@@ -26,6 +42,14 @@ export interface Now {
   minutes: number
   /** Day of the week, Sunday first. */
   weekday: number
+  /**
+   * The instant those two describe, and the zone they are in. Given both, a
+   * countdown is the time that will actually elapse rather than the difference
+   * between two wall clock readings, which are not the same across a clock
+   * change. Without them the two agree anyway.
+   */
+  instant?: Date
+  timeZone?: string
 }
 
 function servedOn(meal: Meal, weekday: number): boolean {
@@ -54,8 +78,8 @@ function occurrences(meals: Meal[], now: Now): ScheduledMeal[] {
         start,
         end,
         status: 'later',
-        startsIn: start - now.minutes,
-        endsIn: end - now.minutes,
+        startsIn: minutesUntil(start, now),
+        endsIn: minutesUntil(end, now),
       })
     }
   }
