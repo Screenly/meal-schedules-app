@@ -125,12 +125,26 @@ export function headlineSitting(
  */
 export const BOARD_CAPACITY = 6
 
+/** A sitting the board must not drop whatever else has to go. */
+function isEssential(sitting: ScheduledMeal): boolean {
+  return sitting.status === 'serving' || sitting.status === 'next'
+}
+
 /**
- * Trim the board to what fits, dropping finished sittings oldest first.
+ * Trim the board to what fits, by how much each sitting is worth keeping.
  *
- * A guest wants to know what is on now and what is coming. Breakfast having
- * ended four hours ago is the first thing worth losing, and losing it keeps
- * the remaining rows large enough to read from the far side of a lobby.
+ * A guest wants to know what is on now and what is coming, so anything being
+ * served and the one coming next are never dropped. The room left over goes to
+ * sittings still to come, soonest first, and then to finished ones, most recent
+ * first: breakfast having ended four hours ago is the first thing worth losing.
+ *
+ * Dropping by position instead looks right while services run one after
+ * another and fails where they overlap: a resort with six outlets open at once
+ * pushed the next sitting off the end of the list.
+ *
+ * Such a resort can also have more essential sittings than the capacity. They
+ * all stay and the rows shrink, which is the better failure of the two, since
+ * a small row can be read and a missing one cannot.
  */
 export function boardFor(
   schedule: ScheduledMeal[],
@@ -140,19 +154,19 @@ export function boardFor(
     return schedule
   }
 
-  const trimmed = [...schedule]
-  while (trimmed.length > capacity) {
-    const finished = trimmed.findIndex(
-      (sitting) => sitting.status === 'finished',
-    )
-    if (finished === -1) {
-      break
-    }
-    trimmed.splice(finished, 1)
-  }
+  const essential = schedule.filter(isEssential)
+  const optional = schedule.filter((sitting) => !isEssential(sitting))
+  const room = Math.max(0, capacity - essential.length)
 
-  // Still too many sittings still to come: keep the soonest.
-  return trimmed.slice(0, capacity)
+  const keep = new Set([
+    ...essential,
+    ...[
+      ...optional.filter((sitting) => sitting.status === 'later'),
+      ...optional.filter((sitting) => sitting.status === 'finished').reverse(),
+    ].slice(0, room),
+  ])
+
+  return schedule.filter((sitting) => keep.has(sitting))
 }
 
 /**

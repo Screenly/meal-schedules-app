@@ -153,6 +153,17 @@ describe('trimming the board to what fits', () => {
     Night menu | 23:00 | 02:00 | Library
   `).meals
 
+  /** A resort with half a dozen outlets open at the same time. */
+  const resort = parseMeals(`
+    Breakfast | 07:00 | 12:00 | Main
+    Coffee | 08:00 | 12:00 | Lobby
+    Brunch | 09:00 | 13:00 | Terrace
+    Pool grill | 10:00 | 17:00 | Poolside
+    Lounge menu | 10:30 | 18:00 | Lounge
+    Deli | 11:00 | 15:00 | Deli
+    Afternoon tea | 15:00 | 17:30 | Drawing Room
+  `).meals
+
   test('a short schedule is left alone', () => {
     const board = scheduleFor(HOTEL, { minutes: 14 * 60, weekday: WEDNESDAY })
     expect(boardFor(board)).toEqual(board)
@@ -176,18 +187,78 @@ describe('trimming the board to what fits', () => {
   })
 
   test('never drops what is being served or what is next', () => {
-    for (let hour = 0; hour < 24; hour += 1) {
-      const board = boardFor(
-        scheduleFor(busy, { minutes: hour * 60, weekday: WEDNESDAY }),
-      )
-      const full = scheduleFor(busy, { minutes: hour * 60, weekday: WEDNESDAY })
+    for (const meals of [busy, resort]) {
+      for (let hour = 0; hour < 24; hour += 1) {
+        const now = { minutes: hour * 60, weekday: WEDNESDAY }
+        const full = scheduleFor(meals, now)
+        const board = boardFor(full)
 
-      for (const sitting of full) {
-        if (sitting.status === 'serving' || sitting.status === 'next') {
-          expect(board).toContainEqual(sitting)
+        for (const sitting of full) {
+          if (sitting.status === 'serving' || sitting.status === 'next') {
+            expect(board).toContainEqual(sitting)
+          }
         }
       }
     }
+  })
+})
+
+describe('what the board keeps when there is not room for everything', () => {
+  /** A resort with half a dozen outlets open at the same time. */
+  const resort = parseMeals(`
+    Breakfast | 07:00 | 12:00 | Main
+    Coffee | 08:00 | 12:00 | Lobby
+    Brunch | 09:00 | 13:00 | Terrace
+    Pool grill | 10:00 | 17:00 | Poolside
+    Lounge menu | 10:30 | 18:00 | Lounge
+    Deli | 11:00 | 15:00 | Deli
+    Afternoon tea | 15:00 | 17:30 | Drawing Room
+  `).meals
+
+  const busy = parseMeals(`
+    Early riser coffee | 05:30 | 07:00 | Lobby
+    Breakfast | 06:30 | 10:30 | Garden Restaurant
+    Brunch | 10:00 | 13:00 | Terrace
+    Business lunch | 12:00 | 15:00 | Oak Room
+    Afternoon tea | 15:00 | 17:30 | Drawing Room
+    Dinner | 18:30 | 22:00 | Main Hall
+    Late bar | 22:00 | 01:00 | Library
+    Night menu | 23:00 | 02:00 | Library
+  `).meals
+
+  test('keeps the next sitting when the outlets overlap past capacity', () => {
+    // Six services open at once: dropping by position pushed the next sitting
+    // off the end, because it starts last.
+    const full = scheduleFor(resort, {
+      minutes: 11 * 60 + 30,
+      weekday: WEDNESDAY,
+    })
+    const board = boardFor(full)
+
+    expect(full).toHaveLength(7)
+    expect(board.map((sitting) => sitting.meal.name)).toContain('Afternoon tea')
+    expect(board.find((sitting) => sitting.status === 'next')).toBeDefined()
+  })
+
+  test('more essential sittings than room keeps them all', () => {
+    const board = boardFor(
+      scheduleFor(resort, { minutes: 11 * 60 + 30, weekday: WEDNESDAY }),
+      4,
+    )
+
+    expect(board).toHaveLength(7)
+    expect(board.every((sitting) => sitting.status !== 'finished')).toBe(true)
+  })
+
+  test('the room left over goes to what is coming before what is over', () => {
+    const full = scheduleFor(busy, { minutes: 14 * 60, weekday: WEDNESDAY })
+    const board = boardFor(full, 4)
+
+    const statuses = board.map((sitting) => sitting.status)
+    expect(
+      statuses.filter((status) => status === 'later').length,
+    ).toBeGreaterThan(0)
+    expect(board).toHaveLength(4)
   })
 
   test('keeps the soonest when everything is still to come', () => {
