@@ -65,12 +65,31 @@ function minutesFromTarget(
   )
 }
 
-/** Wide enough to hold any clock change on either side of the gap. */
+/** Wide enough to hold any clock change on either side of the time asked for. */
 const SEARCH_WINDOW = 4 * 60 * MS_PER_MINUTE
 
+/** The zone's offset at an instant, folded so that two can be compared. */
+function offsetMinutes(instant: Date, timeZone: string): number {
+  const local = zonedNow(instant, timeZone).minutes
+  const utc = instant.getUTCHours() * 60 + instant.getUTCMinutes()
+
+  return ((local - utc + 2160) % 1440) - 720
+}
+
+/** Whether the clocks changed in the window a resolution searches. */
+function clocksChangedNearby(instant: Date, timeZone: string): boolean {
+  const before = new Date(instant.getTime() - SEARCH_WINDOW)
+
+  return offsetMinutes(instant, timeZone) !== offsetMinutes(before, timeZone)
+}
+
 /**
- * The first instant whose local time has reached a local time that does not
- * exist, which is the moment of the jump that skipped it.
+ * The first instant at which the clocks have reached a local time.
+ *
+ * For a time a forward change skipped this is the moment of the jump. For one
+ * a backward change repeats it is the earlier of the two passes, which is what
+ * makes it an answer about the time itself rather than about whereabouts in
+ * the repeated hour the question was asked.
  */
 function firstInstantReaching(
   near: Date,
@@ -111,17 +130,21 @@ function firstInstantReaching(
  * against the zone and corrected. Without that, scrubbing across the night the
  * clocks change lands an hour out.
  *
- * A time a forward change skips does not exist, and `whenSkipped` says what to
- * do about it. The scrubber takes the nearest real instant, which reads as the
- * hour before the jump. A countdown cannot: an end time inside the gap would
- * resolve to an instant already gone and count backwards, so it asks for the
- * first instant the clocks reach at or after it, which is the jump itself.
+ * The night the clocks change, a local time can happen twice or not at all,
+ * and `whenDoubtful` says which answer is wanted. The scrubber takes the
+ * nearest real instant to where it already is, which is what scrubbing means.
+ *
+ * A countdown cannot use that. An end time inside a gap resolves to an instant
+ * already gone and counts backwards, and a time in a repeated hour resolves to
+ * whichever pass the question was asked in, so a service that has finished
+ * starts again when the hour comes round a second time. Asking for `first`
+ * pins the time to an instant that does not depend on when it was asked.
  */
 export function instantForLocal(
   reference: Date,
   timeZone: string,
   target: { minutes: number; weekday: number },
-  whenSkipped: 'nearest' | 'forward' = 'nearest',
+  whenDoubtful: 'nearest' | 'first' = 'nearest',
 ): Date {
   const shortWayRound = (from: number, to: number) => {
     const forward = (to - from + 7) % 7
@@ -135,24 +158,29 @@ export function instantForLocal(
       (target.minutes - current.minutes) * MS_PER_MINUTE,
   )
 
-  for (let pass = 0; pass < 3; pass += 1) {
+  let landedOnIt = false
+  for (let pass = 0; pass < 3 && !landedOnIt; pass += 1) {
     const landed = zonedNow(instant, timeZone)
-    if (
-      landed.weekday === target.weekday &&
-      landed.minutes === target.minutes
-    ) {
-      return instant
-    }
+    landedOnIt =
+      landed.weekday === target.weekday && landed.minutes === target.minutes
 
-    instant = new Date(
-      instant.getTime() +
-        shortWayRound(landed.weekday, target.weekday) * MS_PER_DAY +
-        (target.minutes - landed.minutes) * MS_PER_MINUTE,
-    )
+    if (!landedOnIt) {
+      instant = new Date(
+        instant.getTime() +
+          shortWayRound(landed.weekday, target.weekday) * MS_PER_DAY +
+          (target.minutes - landed.minutes) * MS_PER_MINUTE,
+      )
+    }
   }
 
-  // Nothing landed on it, so the local time is one the clocks skipped.
-  return whenSkipped === 'forward'
-    ? firstInstantReaching(instant, timeZone, target)
-    : instant
+  if (whenDoubtful === 'nearest') {
+    return instant
+  }
+
+  // Away from a clock change the arithmetic above is already the only answer,
+  // which is worth knowing: the search below costs a couple of dozen reads of
+  // the zone and every sitting on the board resolves two of these.
+  return landedOnIt && !clocksChangedNearby(instant, timeZone)
+    ? instant
+    : firstInstantReaching(instant, timeZone, target)
 }

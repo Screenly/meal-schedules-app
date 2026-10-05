@@ -391,7 +391,9 @@ describe('countdowns across a clock change', () => {
     // 00:30 GMT to 07:00 BST is five and a half hours, not six and a half.
     expect(board[0]!.startsIn).toBe(330)
   })
+})
 
+describe('a local time the clocks skip or repeat', () => {
   test('a time the clocks skip counts to the jump, never backwards', () => {
     // London goes from 01:00 to 02:00 on 29 March 2026, so 01:30 never
     // happens. At 00:45 the service is still being served and ends when the
@@ -425,6 +427,48 @@ describe('countdowns across a clock change', () => {
           expect(sitting.endsIn).toBeGreaterThanOrEqual(0)
         }
       }
+    }
+  })
+
+  test('a service cannot open again when an hour repeats', () => {
+    // London's clocks go back at 02:00 on 25 October 2026, so 01:00 to 01:59
+    // local runs twice. A service ending at 01:30 was finished on the first
+    // pass and serving again on the second.
+    const gapped = parseMeals('Night service | 00:00 | 01:30 | Bar').meals
+    const statusAt = (minute: number) =>
+      scheduleFor(
+        gapped,
+        zonedNow(
+          new Date(Date.UTC(2026, 9, 25, 0, minute, 0)),
+          'Europe/London',
+        ),
+      ).find((sitting) => sitting.meal.name === 'Night service')?.status
+
+    expect(statusAt(15)).toBe('serving')
+    expect(statusAt(45)).toBe('finished')
+    // 01:00Z is the repeated 01:00, an hour after the first one.
+    expect(statusAt(60)).toBe('finished')
+    expect(statusAt(75)).toBe('finished')
+  })
+
+  test('a countdown only ever runs down', () => {
+    const gapped = parseMeals('Night service | 00:00 | 01:30 | Bar').meals
+    let previous = Number.POSITIVE_INFINITY
+
+    for (let minute = 0; minute <= 240; minute += 5) {
+      const now = zonedNow(
+        new Date(Date.UTC(2026, 9, 25, 0, minute, 0)),
+        'Europe/London',
+      )
+      const sitting = scheduleFor(gapped, now).find(
+        (entry) => entry.meal.name === 'Night service',
+      )
+      if (!sitting) {
+        continue
+      }
+
+      expect(sitting.endsIn).toBeLessThan(previous)
+      previous = sitting.endsIn
     }
   })
 })

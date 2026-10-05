@@ -31,9 +31,10 @@ function minutesUntil(localMinutes: number, now: Now): number {
       minutes: localMinutes - dayShift * MINUTES_PER_DAY,
       weekday: (now.weekday + dayShift + 7) % 7,
     },
-    // A sitting starting or ending in an hour the clocks skipped does so when
-    // they pass it, never in the hour before it, which has already gone.
-    'forward',
+    // Pinned to an instant rather than read off the wall clock: a sitting in
+    // an hour the clocks skipped or repeated has to resolve the same way
+    // whenever it is asked about, or it moves under the countdown.
+    'first',
   )
 
   return Math.round((instant.getTime() - now.instant.getTime()) / 60000)
@@ -110,20 +111,27 @@ function occurrences(meals: Meal[], now: Now): ScheduledMeal[] {
 export function scheduleFor(meals: Meal[], now: Now): ScheduledMeal[] {
   const all = occurrences(meals, now)
 
+  /*
+   * Where a sitting has got to is asked of the countdowns, not of the wall
+   * clock. The hour a backward change repeats reads the same twice, so a
+   * service whose end has gone by would open again on the second pass. The
+   * countdowns are pinned to instants and only ever run down.
+   *
+   * Which local day a sitting belongs to is still a wall clock question, and
+   * stays one: that is what the board is a list of.
+   */
   const serving = (sitting: ScheduledMeal) =>
-    sitting.start <= now.minutes && sitting.end > now.minutes
+    sitting.startsIn <= 0 && sitting.endsIn > 0
+  const toCome = (sitting: ScheduledMeal) => sitting.startsIn > 0
   const isToday = (sitting: ScheduledMeal) =>
     sitting.start >= 0 && sitting.start < MINUTES_PER_DAY
 
   const board = all.filter((sitting) => isToday(sitting) || serving(sitting))
 
-  const somethingLeftToday = board.some(
-    (sitting) => sitting.start > now.minutes,
-  )
+  const somethingLeftToday = board.some(toCome)
   if (!somethingLeftToday) {
     const tomorrow = all.find(
-      (sitting) =>
-        sitting.start >= MINUTES_PER_DAY && sitting.start > now.minutes,
+      (sitting) => sitting.start >= MINUTES_PER_DAY && toCome(sitting),
     )
     if (tomorrow) {
       board.push(tomorrow)
@@ -135,7 +143,7 @@ export function scheduleFor(meals: Meal[], now: Now): ScheduledMeal[] {
     if (serving(sitting)) {
       return { ...sitting, status: 'serving' as const }
     }
-    if (sitting.end <= now.minutes) {
+    if (sitting.endsIn <= 0) {
       return { ...sitting, status: 'finished' as const }
     }
     if (!nextTaken) {
