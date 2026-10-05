@@ -14,12 +14,10 @@ import {
 import { headlineSitting, type ScheduledMeal } from './schedule.js'
 
 /**
- * Type sizes before `fitDynamicText` scales them to the space available. The
- * stylesheet sizes the line boxes for these, so the two have to agree.
+ * The floors the fitter will not shrink past. The size it starts from is read
+ * from the stylesheet, so a theme that sets its own stays in charge of it.
  */
-export const VENUE_SIZE = 66
 const VENUE_MIN_SIZE = 34
-const HEADLINE_SIZE = 118
 const HEADLINE_MIN_SIZE = 56
 
 export interface Display {
@@ -237,12 +235,8 @@ export function fitBoardRows(): void {
  * sized its box, and an unconstrained element reports no overflow to correct.
  */
 export function fitDynamicText(): void {
-  fitToWidth(element<HTMLElement>('[data-venue]'), VENUE_SIZE, VENUE_MIN_SIZE)
-  fitToWidth(
-    element<HTMLElement>('[data-headline-name]'),
-    HEADLINE_SIZE,
-    HEADLINE_MIN_SIZE,
-  )
+  fitToWidth(element<HTMLElement>('[data-venue]'), VENUE_MIN_SIZE)
+  fitToWidth(element<HTMLElement>('[data-headline-name]'), HEADLINE_MIN_SIZE)
   fitBoardRows()
 }
 

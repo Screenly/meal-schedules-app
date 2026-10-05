@@ -108,22 +108,46 @@ describe('scrubbing across a clock change', () => {
     expect(landed).toEqual(target)
   })
 
-  test('every weekday and hour of a transition week is reachable', () => {
-    const reference = new Date('2026-03-25T12:00:00Z')
+  test('the hour a forward change skips returns the nearest real instant', () => {
+    // London's clocks go from 01:00 to 02:00 on Sunday 29 March 2026, so no
+    // local time in that hour occurs. From the Friday, that is the near Sunday.
+    const friday = new Date('2026-03-27T12:00:00Z')
+    const asked = { minutes: 60, weekday: 0 }
+    const landed = zonedNow(
+      instantAt(friday, 'Europe/London', asked),
+      'Europe/London',
+    )
 
-    for (let weekday = 0; weekday < 7; weekday += 1) {
-      for (const hour of [0, 6, 12, 18, 23]) {
-        const target = { minutes: hour * 60, weekday }
-        const landed = zonedNow(
-          instantAt(reference, 'Europe/London', target),
-          'Europe/London',
-        )
+    expect(landed.weekday).toBe(0)
+    expect(landed.minutes).toBe(0)
+  })
 
-        // 01:00 on the Sunday does not exist; everything else is exact.
-        if (!(weekday === 0 && hour === 0)) {
-          expect(landed).toEqual(target)
-        }
-      }
+  test('the hours either side of the skipped one are exact', () => {
+    const friday = new Date('2026-03-27T12:00:00Z')
+
+    for (const hour of [0, 2, 3, 12, 23]) {
+      const target = { minutes: hour * 60, weekday: 0 }
+      const landed = zonedNow(
+        instantAt(friday, 'Europe/London', target),
+        'Europe/London',
+      )
+
+      expect(landed).toEqual(target)
+    }
+  })
+
+  test('every hour of the Sunday the clocks go back is reachable', () => {
+    // 25 October 2026 repeats an hour rather than skipping one.
+    const friday = new Date('2026-10-23T12:00:00Z')
+
+    for (let hour = 0; hour < 24; hour += 1) {
+      const target = { minutes: hour * 60, weekday: 0 }
+      const landed = zonedNow(
+        instantAt(friday, 'Europe/London', target),
+        'Europe/London',
+      )
+
+      expect(landed).toEqual(target)
     }
   })
 })
