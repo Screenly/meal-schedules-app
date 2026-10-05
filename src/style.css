@@ -226,15 +226,21 @@
     --row-gap: 6px;
   }
 
+  /*
+   * Two columns, the name and the time. The dot leader between them is a
+   * classic theme thing and the override there adds the track it needs: a
+   * third track here would be empty in the modern themes but still take a gap,
+   * holding every time 40px off the right edge and narrowing the names.
+   */
   .sitting {
     display: grid;
     align-items: center;
     gap: 40px;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr auto;
     padding: var(--row-padding) 0;
   }
 
-  /* A menu card's dot leaders. Classic only; modern closes the gap instead. */
+  /* A menu card's dot leaders. Classic only; modern sets the two side by side. */
   .sitting-leader {
     display: none;
   }
