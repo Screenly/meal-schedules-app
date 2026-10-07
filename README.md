@@ -113,8 +113,19 @@ screenly edge-app create --name meal-schedules-app --in-place
 bun run deploy
 ```
 
-In CI, `Update Edge App` deploys `development` to stage and `master` to
-production. The Edge App id is passed to the action rather than written into
+In CI, `Update Edge App` deploys every push to `master` to stage, and a `v*`
+tag to production. To release, tag the commit on `master` and push the tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Restrict the GitHub `production` environment to tags matching `v*` (Settings,
+Environments, Deployment branches and tags) so only a tagged release can reach
+it.
+
+The Edge App id is passed to the action rather than written into
 `screenly.yml`, so this repository's manifest carries no `id`. Set it per
 environment as a repository variable, `STAGE_EDGE_APP_ID` and
 `PRODUCTION_EDGE_APP_ID`, or as an `EDGE_APP_ID` secret scoped to a GitHub
