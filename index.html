@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meal Schedules - Screenly Edge App</title>
+    <script src="screenly.js?version=1"></script>
+  </head>
+  <body>
+    <auto-scaler
+      reference-width="1920"
+      reference-height="1080"
+      orientation="auto"
+      padding="0"
+    >
+      <div id="app">
+        <header class="masthead">
+          <h1 class="venue" data-venue>&nbsp;</h1>
+          <div class="today">
+            <div class="clock" data-clock>&nbsp;</div>
+            <div class="date" data-date>&nbsp;</div>
+          </div>
+        </header>
+
+        <section class="headline" data-headline hidden>
+          <div class="headline-status" data-headline-status>&nbsp;</div>
+          <div class="headline-name" data-headline-name>&nbsp;</div>
+          <div class="headline-detail" data-headline-detail>&nbsp;</div>
+          <div class="headline-track" data-headline-track hidden>
+            <div class="headline-progress" data-headline-progress></div>
+          </div>
+        </section>
+
+        <main class="board" data-board></main>
+
+        <footer class="notice" data-notice hidden></footer>
+      </div>
+    </auto-scaler>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

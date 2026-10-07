@@ -1,0 +1,153 @@
+import { describe, expect, test } from 'bun:test'
+import { isClockOverridden, now, setClockOverride } from './clock.js'
+import { instantForLocal, zonedNow } from './timezone.js'
+
+describe('the clock', () => {
+  test('follows the system until it is overridden', () => {
+    expect(isClockOverridden()).toBe(false)
+    expect(Math.abs(now().getTime() - Date.now())).toBeLessThan(1000)
+
+    setClockOverride(new Date('2026-10-07T09:00:00Z'))
+    expect(isClockOverridden()).toBe(true)
+    expect(now().toISOString()).toBe('2026-10-07T09:00:00.000Z')
+
+    setClockOverride(null)
+    expect(isClockOverridden()).toBe(false)
+  })
+})
+
+describe('scrubbing to a weekday and time', () => {
+  const reference = new Date('2026-10-07T12:00:00Z') // a Wednesday
+
+  test('lands on the asked for weekday and time', () => {
+    const target = { minutes: 8 * 60 + 30, weekday: 6 }
+    const landed = zonedNow(instantForLocal(reference, 'UTC', target), 'UTC')
+
+    expect(landed).toMatchObject(target)
+  })
+
+  test('works backwards through the week as well', () => {
+    const target = { minutes: 22 * 60, weekday: 0 }
+    const landed = zonedNow(instantForLocal(reference, 'UTC', target), 'UTC')
+
+    expect(landed).toMatchObject(target)
+  })
+
+  test('steps the short way round the week', () => {
+    // From a Sunday, Saturday is yesterday, not six days off.
+    const sunday = new Date('2026-10-04T12:00:00Z')
+    const saturday = instantForLocal(sunday, 'UTC', {
+      minutes: 12 * 60,
+      weekday: 6,
+    })
+
+    expect(saturday.toISOString().slice(0, 10)).toBe('2026-10-03')
+    expect(zonedNow(saturday, 'UTC').weekday).toBe(6)
+  })
+
+  test('and the other way across the same boundary', () => {
+    const saturday = new Date('2026-10-10T12:00:00Z')
+    const sunday = instantForLocal(saturday, 'UTC', {
+      minutes: 12 * 60,
+      weekday: 0,
+    })
+
+    expect(sunday.toISOString().slice(0, 10)).toBe('2026-10-11')
+    expect(zonedNow(sunday, 'UTC').weekday).toBe(0)
+  })
+
+  test('never steps more than three days either way', () => {
+    const reference = new Date('2026-10-07T12:00:00Z')
+
+    for (let weekday = 0; weekday < 7; weekday += 1) {
+      const landed = instantForLocal(reference, 'UTC', {
+        minutes: 12 * 60,
+        weekday,
+      })
+      const days = (landed.getTime() - reference.getTime()) / 86400000
+
+      expect(Math.abs(days)).toBeLessThanOrEqual(3)
+      expect(zonedNow(landed, 'UTC').weekday).toBe(weekday)
+    }
+  })
+
+  test('holds in a timezone away from UTC', () => {
+    const target = { minutes: 60, weekday: 5 }
+    const landed = zonedNow(
+      instantForLocal(reference, 'Asia/Dubai', target),
+      'Asia/Dubai',
+    )
+
+    expect(landed).toMatchObject(target)
+  })
+})
+
+describe('scrubbing across a clock change', () => {
+  test('lands on the asked for time when the clocks go forward', () => {
+    // London's clocks go forward in the small hours of Sunday 29 March 2026,
+    // so that local day is 23 hours long.
+    const saturday = new Date('2026-03-28T12:00:00Z')
+    const target = { minutes: 12 * 60, weekday: 0 }
+    const landed = zonedNow(
+      instantForLocal(saturday, 'Europe/London', target),
+      'Europe/London',
+    )
+
+    expect(landed).toMatchObject(target)
+  })
+
+  test('and when they go back', () => {
+    // 25 October 2026 is 25 hours long in London.
+    const saturday = new Date('2026-10-24T12:00:00Z')
+    const target = { minutes: 12 * 60, weekday: 0 }
+    const landed = zonedNow(
+      instantForLocal(saturday, 'Europe/London', target),
+      'Europe/London',
+    )
+
+    expect(landed).toMatchObject(target)
+  })
+
+  test('the hour a forward change skips returns the nearest real instant', () => {
+    // London's clocks go from 01:00 to 02:00 on Sunday 29 March 2026, so no
+    // local time in that hour occurs. From the Friday, that is the near Sunday.
+    const friday = new Date('2026-03-27T12:00:00Z')
+    const asked = { minutes: 60, weekday: 0 }
+    const landed = zonedNow(
+      instantForLocal(friday, 'Europe/London', asked),
+      'Europe/London',
+    )
+
+    expect(landed.weekday).toBe(0)
+    expect(landed.minutes).toBe(0)
+  })
+
+  test('the hours either side of the skipped one are exact', () => {
+    const friday = new Date('2026-03-27T12:00:00Z')
+
+    for (const hour of [0, 2, 3, 12, 23]) {
+      const target = { minutes: hour * 60, weekday: 0 }
+      const landed = zonedNow(
+        instantForLocal(friday, 'Europe/London', target),
+        'Europe/London',
+      )
+
+      expect(landed).toMatchObject(target)
+    }
+  })
+
+  test('every hour of the Sunday the clocks go back is reachable', () => {
+    // 25 October 2026 repeats an hour rather than skipping one.
+    const friday = new Date('2026-10-23T12:00:00Z')
+
+    for (let hour = 0; hour < 24; hour += 1) {
+      const target = { minutes: hour * 60, weekday: 0 }
+      const landed = zonedNow(
+        instantForLocal(friday, 'Europe/London', target),
+        'Europe/London',
+      )
+
+      expect(landed).toMatchObject(target)
+    }
+  })
+})

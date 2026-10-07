@@ -1,0 +1,102 @@
+---
+syntax: manifest_v1
+description: 'Meal service times for hotels and restaurants, on a board readable across a room'
+author: Screenly, Inc.
+categories:
+  - Hospitality
+ready_signal: true
+settings:
+  meals:
+    type: string
+    default_value: |
+      Breakfast | 06:30 | 10:30 | Garden Restaurant
+      Lunch | 12:00 | 15:00 | Garden Restaurant
+      Dinner | 18:30 | 22:00 | Main Hall
+    title: Meals
+    optional: true
+    help_text:
+      properties:
+        type: textarea
+        help_text: |
+          One meal per line: name | start | end | where | days.
+          Only the name and the two times are needed.
+
+            Breakfast | 06:30 | 10:30 | Garden Restaurant
+            Business lunch | 12:00 | 15:00 | | Mon-Fri
+            Brunch | 09:00 | 13:00 | Terrace | Sat, Sun
+            Late bar | 22:00 | 01:00
+
+          Times can be written as 7, 07:00, 7:30 or 7:30pm. Days can be a list
+          (Sat, Sun), a range (Mon-Fri), or daily, weekdays or weekends. A line
+          starting with # is ignored.
+      schema_version: 1
+  venue_name:
+    type: string
+    default_value: ''
+    title: Venue Name
+    optional: true
+    help_text: |
+      Shown at the top of the board, e.g. "Hartwell House" or "The Terrace".
+      Defaults to the screen's own location.
+  board_theme:
+    type: string
+    default_value: modern-dark
+    title: Theme
+    optional: true
+    help_text:
+      properties:
+        help_text: |
+          How the board is drawn. Modern is flat and plain; classic sets the
+          names in a serif over cream or deep brown, for a more formal room.
+        options:
+          - label: Modern dark
+            value: modern-dark
+          - label: Modern light
+            value: modern-light
+          - label: Classic dark
+            value: classic-dark
+          - label: Classic light
+            value: classic-light
+          - label: Follow account theme
+            value: auto
+        type: select
+      schema_version: 1
+  accent_color:
+    type: string
+    default_value: ''
+    title: Accent Colour
+    optional: true
+    help_text:
+      properties:
+        advanced: true
+        help_text: |
+          Hex colour for the highlights, e.g. #a06e47. Leave blank and the
+          modern themes use your Screenly branding colour, while the classic
+          themes keep their own bronze or gold. Where the colour is the text
+          itself it is lightened or darkened if it would otherwise be too close
+          to the background to read.
+        type: string
+      schema_version: 1
+  clock_format:
+    type: string
+    default_value: 24h
+    title: Clock Format
+    optional: true
+    help_text:
+      properties:
+        help_text: Show times on a 24 hour or 12 hour clock.
+        options:
+          - label: 24 hour (18:30)
+            value: 24h
+          - label: 12 hour (6:30 PM)
+            value: 12h
+        type: select
+      schema_version: 1
+  override_timezone:
+    type: string
+    default_value: ''
+    title: Override Timezone
+    optional: true
+    help_text: |
+      Override the timezone with an IANA identifier (e.g. Europe/London).
+      Defaults to the timezone of the screen's coordinates.

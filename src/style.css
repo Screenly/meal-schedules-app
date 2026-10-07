@@ -1,0 +1,436 @@
+@layer theme, base, utilities;
+
+@import './fonts.css';
+@import 'tailwindcss/theme.css' layer(theme);
+@import '@screenly/edge-apps/styles' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@layer base {
+  /*
+   * Four themes, a tone in a style. Only tokens change between them, so the
+   * layout is the same board whichever is chosen. --accent is overwritten at
+   * runtime by the branding colour, or by the accent_color setting.
+   */
+  :root,
+  :root[data-theme='modern-dark'] {
+    --ink: #ffffff;
+    --ink-muted: rgba(255, 255, 255, 0.62);
+    --ink-faint: rgba(255, 255, 255, 0.34);
+    --surface: #0d1017;
+    --rule: rgba(255, 255, 255, 0.12);
+    --accent: #ffb43a;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --display-weight: 700;
+    --display-tracking: -0.03em;
+    --name-weight: 600;
+    --label-tracking: 0.18em;
+  }
+
+  :root[data-theme='modern-light'] {
+    --ink: #10131a;
+    --ink-muted: rgba(16, 19, 26, 0.64);
+    --ink-faint: rgba(16, 19, 26, 0.38);
+    --surface: #f6f7f9;
+    --rule: rgba(16, 19, 26, 0.14);
+    --accent: #b8700a;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --display-weight: 700;
+    --display-tracking: -0.03em;
+    --name-weight: 600;
+    --label-tracking: 0.18em;
+  }
+
+  /* Cream, bronze and a high contrast serif: a palace hotel lobby. */
+  :root[data-theme='classic-light'] {
+    --ink: #2a2520;
+    --ink-muted: rgba(42, 37, 32, 0.66);
+    --ink-faint: rgba(42, 37, 32, 0.42);
+    --surface: #fbf8f1;
+    --rule: rgba(42, 37, 32, 0.18);
+    --accent: #a06e47;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --display-weight: 500;
+    --display-tracking: -0.005em;
+    --name-weight: 500;
+    --label-tracking: 0.26em;
+  }
+
+  :root[data-theme='classic-dark'] {
+    --ink: #f4ece0;
+    --ink-muted: rgba(244, 236, 224, 0.64);
+    --ink-faint: rgba(244, 236, 224, 0.38);
+    --surface: #1a1611;
+    --rule: rgba(244, 236, 224, 0.16);
+    --accent: #c9a227;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --display-weight: 500;
+    --display-tracking: -0.005em;
+    --name-weight: 500;
+    --label-tracking: 0.26em;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #app {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  /* Masthead */
+
+  .masthead {
+    display: flex;
+    flex: none;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 48px;
+    border-bottom: 1px solid var(--rule);
+    padding: 34px 64px 26px;
+  }
+
+  /*
+   * The width cap is what lets the fitter work. Centred in a column, as the
+   * classic and portrait mastheads are, this box would otherwise size to its
+   * own text: clientWidth would equal scrollWidth however long the name, the
+   * fitter would see nothing to shrink, and the name would run off both edges.
+   *
+   * min-width matters as much. A flex item will not shrink below its unwrapped
+   * text without it, so beside the clock in the modern masthead the cap alone
+   * let the venue measure itself against the whole row and push the clock out.
+   */
+  .venue {
+    height: 72px;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 66px;
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    line-height: 72px;
+    white-space: nowrap;
+  }
+
+  .today {
+    flex: none;
+    text-align: right;
+  }
+
+  .clock {
+    font-family: var(--font-display);
+    font-size: 66px;
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    line-height: 1;
+  }
+
+  .date {
+    margin-top: 8px;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: 32px;
+  }
+
+  /* The one thing to read from across the room */
+
+  .headline {
+    flex: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 30px 64px 34px;
+  }
+
+  .headline-status {
+    color: var(--accent-text, var(--accent));
+    font-size: 36px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--label-tracking);
+  }
+
+  .headline-name {
+    height: 126px;
+    overflow: hidden;
+    margin-top: 6px;
+    font-family: var(--font-display);
+    font-size: 118px;
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    line-height: 126px;
+    white-space: nowrap;
+  }
+
+  .headline-detail {
+    margin-top: 16px;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: 44px;
+  }
+
+  .headline-track {
+    margin-top: 26px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--rule);
+    overflow: hidden;
+  }
+
+  .headline-progress {
+    height: 100%;
+    border-radius: 6px;
+    background: var(--accent);
+  }
+
+  /* The day's board */
+
+  .board {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    align-items: center;
+    padding: 0 64px;
+  }
+
+  .board-rows {
+    width: 100%;
+  }
+
+  /* Overridden by fitBoardRows once the space left for the board is known. */
+  .board {
+    --row-padding: 26px;
+    --row-name: 68px;
+    --row-time: 64px;
+    --row-location: 34px;
+    --row-gap: 6px;
+  }
+
+  /*
+   * Two columns, the name and the time. The dot leader between them is a
+   * classic theme thing and the override there adds the track it needs: a
+   * third track here would be empty in the modern themes but still take a gap,
+   * holding every time 40px off the right edge and narrowing the names.
+   */
+  .sitting {
+    display: grid;
+    align-items: center;
+    gap: 40px;
+    grid-template-columns: 1fr auto;
+    padding: var(--row-padding) 0;
+  }
+
+  /* A menu card's dot leaders. Classic only; modern sets the two side by side. */
+  .sitting-leader {
+    display: none;
+  }
+
+  .sitting + .sitting {
+    border-top: 1px solid var(--rule);
+  }
+
+  /*
+   * min-width is what lets a long name shrink instead of widening its column.
+   * Without it the automatic minimum of a grid item is its longest unbroken
+   * run of text, which pushes the times off the right of the board.
+   */
+  .sitting-title {
+    min-width: 0;
+    grid-column: 1;
+  }
+
+  /*
+   * One line each, at a size that fits. A name wrapping to two lines makes the
+   * row taller than the board counted on when it worked out how many rows fit,
+   * so the line boxes are held to the height the fitter scaled them to and the
+   * text is shrunk into them: the row is the same height whatever it says.
+   */
+  .sitting-name {
+    height: calc(var(--row-name) * 1.1);
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: var(--row-name);
+    font-weight: var(--name-weight);
+    letter-spacing: -0.01em;
+    line-height: calc(var(--row-name) * 1.1);
+    white-space: nowrap;
+  }
+
+  .sitting-location {
+    height: calc(var(--row-location) * 1.2);
+    overflow: hidden;
+    margin-top: var(--row-gap);
+    color: var(--ink-muted);
+    font-size: var(--row-location);
+    line-height: calc(var(--row-location) * 1.2);
+    white-space: nowrap;
+  }
+
+  /* Serif in the classic themes, like the names and the clock beside them. */
+  .sitting-time {
+    font-family: var(--font-display);
+    font-size: var(--row-time);
+    font-weight: var(--name-weight);
+    white-space: nowrap;
+  }
+
+  .is-finished {
+    opacity: 0.38;
+  }
+
+  /*
+   * Nothing in the list is picked out. The banner says what is being served and
+   * what is next; colouring a row the same way says "this one matters now" of a
+   * breakfast six hours off. Finished sittings fade, and the rest are equal.
+   */
+  .is-serving .sitting-name {
+    color: var(--accent-text, var(--accent));
+  }
+
+  /* Nothing configured, or a line we could not read */
+
+  .notice {
+    flex: none;
+    border-top: 1px solid var(--rule);
+    padding: 24px 64px;
+    color: var(--ink-muted);
+    font-size: 30px;
+  }
+
+  .empty {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+  }
+
+  .empty-title {
+    font-family: var(--font-display);
+    font-size: 72px;
+    font-weight: var(--display-weight);
+  }
+
+  .empty-hint {
+    color: var(--ink-muted);
+    font-size: 36px;
+    line-height: 1.4;
+  }
+
+  /*
+   * Classic is not modern in another colour. The masthead centres, the status
+   * pills become letterspaced small caps, the rows are set like a menu card
+   * with dot leaders, and the progress bar thins to a rule.
+   */
+  :root[data-theme^='classic'] .masthead {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    border-bottom-width: 2px;
+    padding-bottom: 22px;
+    text-align: center;
+  }
+
+  :root[data-theme^='classic'] .today {
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    text-align: center;
+  }
+
+  :root[data-theme^='classic'] .clock {
+    font-size: 40px;
+  }
+
+  :root[data-theme^='classic'] .date {
+    margin-top: 0;
+    font-size: 30px;
+  }
+
+  :root[data-theme^='classic'] .venue {
+    height: 78px;
+    font-size: 72px;
+    line-height: 78px;
+  }
+
+  :root[data-theme^='classic'] .headline {
+    padding-bottom: 30px;
+    text-align: center;
+  }
+
+  :root[data-theme^='classic'] .headline-track {
+    height: 2px;
+    border-radius: 0;
+    background: var(--rule);
+  }
+
+  :root[data-theme^='classic'] .headline-progress {
+    border-radius: 0;
+  }
+
+  :root[data-theme^='classic'] .sitting {
+    gap: 24px;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  :root[data-theme^='classic'] .sitting + .sitting {
+    border-top-color: transparent;
+  }
+
+  :root[data-theme^='classic'] .sitting-leader {
+    display: block;
+    height: 0;
+    border-bottom: 2px dotted var(--rule);
+    transform: translateY(-0.25em);
+  }
+
+  :root[data-theme^='classic'] .sitting-location {
+    font-family: var(--font-display);
+    font-style: italic;
+  }
+
+  @media (orientation: portrait) {
+    .masthead {
+      flex-direction: column;
+      gap: 12px;
+      padding: 52px 56px 32px;
+    }
+
+    .today {
+      text-align: left;
+    }
+
+    .headline-name {
+      height: 128px;
+      font-size: 118px;
+      line-height: 128px;
+    }
+
+    .sitting {
+      grid-template-columns: 1fr auto;
+      gap: 12px 32px;
+    }
+  }
+}
