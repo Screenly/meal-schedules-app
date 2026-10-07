@@ -113,8 +113,9 @@ screenly edge-app create --name meal-schedules-app --in-place
 bun run deploy
 ```
 
-In CI, `Update Edge App` deploys every push to `master` to stage, and a `v*`
-tag to production. To release, tag the commit on `master` and push the tag:
+In CI, `Update Edge App` deploys every push to `master` to stage, and a version
+tag such as `v0.1.0` to production. To release, tag the commit on `master` and
+push the tag. A tag whose commit is not on `master` is refused:
 
 ```bash
 git tag v0.1.0

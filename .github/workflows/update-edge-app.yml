@@ -33,6 +33,16 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify tag is on the default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/$DEFAULT_BRANCH"; then
+            echo "Tag $GITHUB_REF_NAME is not on $DEFAULT_BRANCH; refusing to deploy to production."
+            exit 1
+          fi
       - uses: Screenly/edge-apps-actions/update@v26.9.1
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
