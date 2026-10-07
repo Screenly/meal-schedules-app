@@ -198,6 +198,12 @@ const ROW_HEIGHT =
  * the 30px that fitter will not go under, so the two give way together.
  */
 const MIN_ROW_SCALE = 0.45
+/**
+ * How far a portrait board may pad its rows out to fill a tall screen. The text
+ * stays at full size: the column is too narrow for it to grow without shrinking
+ * the names back down. Capped so two sittings do not become two islands.
+ */
+const MAX_PORTRAIT_PADDING = ROW.padding * 3
 
 /**
  * How many rows the space left for the board can hold at the smallest size
@@ -260,13 +266,22 @@ export function fitBoardRows(): void {
   for (let pass = 0; pass < 4; pass += 1) {
     const overflow = list.offsetHeight - board.clientHeight
     if (overflow <= 0 || scale <= MIN_ROW_SCALE) {
-      return
+      break
     }
     scale = Math.max(
       MIN_ROW_SCALE,
       scale * (board.clientHeight / list.offsetHeight),
     )
     apply(scale)
+  }
+
+  if (scale === 1 && window.matchMedia('(orientation: portrait)').matches) {
+    const spare = board.clientHeight - list.offsetHeight
+    const padding = Math.min(
+      MAX_PORTRAIT_PADDING,
+      ROW.padding + Math.max(0, Math.floor(spare / (rows * 2))),
+    )
+    board.style.setProperty('--row-padding', `${padding}px`)
   }
 }
 

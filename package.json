@@ -20,8 +20,7 @@
     "format:check": "prettier --check src/ README.md index.html",
     "deploy": "bun run build && screenly edge-app deploy --path=dist/",
     "type-check": "edge-apps-scripts type-check",
-    "screenshots": "edge-apps-scripts screenshots",
-    "screenshots:themes": "playwright test --config node_modules/@screenly/edge-apps/configs/playwright.js --grep @themes"
+    "screenshots": "edge-apps-scripts screenshots"
   },
   "prettier": "./.prettierrc.json",
   "devDependencies": {

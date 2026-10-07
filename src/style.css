@@ -422,6 +422,14 @@
       text-align: left;
     }
 
+    /*
+     * A tall board has more room than a short list can fill, even padded out.
+     * Hang the rows from the banner so what is left over sits at the foot.
+     */
+    .board {
+      align-items: flex-start;
+    }
+
     .headline-name {
       height: 128px;
       font-size: 118px;

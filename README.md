@@ -1,5 +1,7 @@
 # Meal Schedules
 
+![A meal schedule board with dinner being served](screenshots/meal-schedules-app-1920x1080.webp)
+
 A board of meal service times for a hotel lobby or a restaurant window, sized
 to be read from the other side of the room.
 
