@@ -126,7 +126,7 @@ Versions are calendar based, `vYY.M.PATCH`: the year, the month without a
 leading zero, and a count of releases that month starting from 0. A second
 release in October 2026 is `v26.10.1`.
 
-Restrict the GitHub `production` environment to tags matching `v*` (Settings,
+Restrict the GitHub `production` environment to tags matching `v[0-9]*` (Settings,
 Environments, Deployment branches and tags) so only a tagged release can reach
 it.
 
