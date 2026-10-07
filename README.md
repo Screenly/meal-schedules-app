@@ -114,13 +114,17 @@ bun run deploy
 ```
 
 In CI, `Update Edge App` deploys every push to `master` to stage, and a version
-tag such as `v0.1.0` to production. To release, tag the commit on `master` and
+tag such as `v26.10.0` to production. To release, tag the commit on `master` and
 push the tag. A tag whose commit is not on `master` is refused:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v26.10.0
+git push origin v26.10.0
 ```
+
+Versions are calendar based, `vYY.M.PATCH`: the year, the month without a
+leading zero, and a count of releases that month starting from 0. A second
+release in October 2026 is `v26.10.1`.
 
 Restrict the GitHub `production` environment to tags matching `v*` (Settings,
 Environments, Deployment branches and tags) so only a tagged release can reach
