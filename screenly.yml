@@ -1,7 +1,7 @@
 ---
 syntax: manifest_v1
 description: 'Meal service times for hotels and restaurants, on a board readable across a room'
-icons: 'https://playground.srly.io/edge-apps/icons/meal-schedules.svg'
+icon: 'https://playground.srly.io/edge-apps/icons/meal-schedules.svg'
 author: Screenly, Inc.
 categories:
   - Hospitality
