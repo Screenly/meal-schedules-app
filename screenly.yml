@@ -7,6 +7,18 @@ categories:
   - Hospitality
 ready_signal: true
 settings:
+  venue_name:
+    type: string
+    default_value: ''
+    title: Venue Name
+    optional: true
+    help_text:
+      properties:
+        help_text: |
+          Shown at the top of the board, e.g. "Hartwell House" or "The Terrace".
+          Defaults to the screen's own location.
+        type: string
+      schema_version: 1
   meals:
     type: string
     default_value: |
@@ -30,18 +42,6 @@ settings:
           Times can be written as 7, 07:00, 7:30 or 7:30pm. Days can be a list
           (Sat, Sun), a range (Mon-Fri), or daily, weekdays or weekends. A line
           starting with # is ignored.
-      schema_version: 1
-  venue_name:
-    type: string
-    default_value: ''
-    title: Venue Name
-    optional: true
-    help_text:
-      properties:
-        help_text: |
-          Shown at the top of the board, e.g. "Hartwell House" or "The Terrace".
-          Defaults to the screen's own location.
-        type: string
       schema_version: 1
   board_theme:
     type: string
