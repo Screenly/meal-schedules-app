@@ -1,6 +1,7 @@
 ---
 syntax: manifest_v1
 description: 'Meal service times for hotels and restaurants, on a board readable across a room'
+icon: 'https://playground.srly.io/edge-apps/icons/meal-schedules.svg'
 author: Screenly, Inc.
 categories:
   - Hospitality
@@ -35,9 +36,13 @@ settings:
     default_value: ''
     title: Venue Name
     optional: true
-    help_text: |
-      Shown at the top of the board, e.g. "Hartwell House" or "The Terrace".
-      Defaults to the screen's own location.
+    help_text:
+      properties:
+        help_text: |
+          Shown at the top of the board, e.g. "Hartwell House" or "The Terrace".
+          Defaults to the screen's own location.
+        type: string
+      schema_version: 1
   board_theme:
     type: string
     default_value: modern-dark
@@ -84,6 +89,7 @@ settings:
     optional: true
     help_text:
       properties:
+        advanced: true
         help_text: Show times on a 24 hour or 12 hour clock.
         options:
           - label: 24 hour (18:30)
@@ -97,6 +103,11 @@ settings:
     default_value: ''
     title: Override Timezone
     optional: true
-    help_text: |
-      Override the timezone with an IANA identifier (e.g. Europe/London).
-      Defaults to the timezone of the screen's coordinates.
+    help_text:
+      properties:
+        advanced: true
+        help_text: |
+          Override the timezone with an IANA identifier (e.g. Europe/London).
+          Defaults to the timezone of the screen's coordinates.
+        type: string
+      schema_version: 1
