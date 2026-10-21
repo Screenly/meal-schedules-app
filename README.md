@@ -1,3 +1,5 @@
+[![Version](https://img.shields.io/github/v/release/Screenly/meal-schedules-app)](https://github.com/Screenly/meal-schedules-app/releases/latest)
+
 # Meal Schedules
 
 ![A meal schedule board with dinner being served](screenshots/meal-schedules-app-1920x1080.webp)
