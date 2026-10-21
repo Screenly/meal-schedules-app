@@ -19,12 +19,12 @@ jobs:
     environment: stage
     steps:
       - uses: actions/checkout@v7
-      - uses: Screenly/edge-apps-actions/update@v26.9.1
+      - uses: Screenly/edge-apps-actions/update@v26.10.0
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           environment: stage
           delete_missing_settings: 'true'
-          edge_app_id: ${{ secrets.EDGE_APP_ID || vars.STAGE_EDGE_APP_ID }}
+          edge_app_id: ${{ vars.STAGE_EDGE_APP_ID }}
 
   deploy-production:
     name: Updating Meal Schedules in production
@@ -44,9 +44,9 @@ jobs:
             echo "Tag $GITHUB_REF_NAME is not on $DEFAULT_BRANCH; refusing to deploy to production."
             exit 1
           fi
-      - uses: Screenly/edge-apps-actions/update@v26.9.1
+      - uses: Screenly/edge-apps-actions/update@v26.10.0
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           environment: production
           delete_missing_settings: 'true'
-          edge_app_id: ${{ secrets.EDGE_APP_ID || vars.PRODUCTION_EDGE_APP_ID }}
+          edge_app_id: ${{ vars.PRODUCTION_EDGE_APP_ID }}
