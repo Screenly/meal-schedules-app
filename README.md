@@ -137,6 +137,5 @@ it.
 The Edge App id is passed to the action rather than written into
 `screenly.yml`, so this repository's manifest carries no `id`. Set it per
 environment as a repository variable, `STAGE_EDGE_APP_ID` and
-`PRODUCTION_EDGE_APP_ID`, or as an `EDGE_APP_ID` secret scoped to a GitHub
-environment, which takes precedence. `Initialize Edge App` runs once by hand to
+`PRODUCTION_EDGE_APP_ID`. `Initialize Edge App` runs once by hand to
 create the app in an environment.
