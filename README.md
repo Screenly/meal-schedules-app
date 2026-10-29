@@ -1,3 +1,5 @@
+[![Version](https://img.shields.io/github/v/release/Screenly/meal-schedules-app)](https://github.com/Screenly/meal-schedules-app/releases/latest)
+
 # Meal Schedules
 
 ![A meal schedule board with dinner being served](screenshots/meal-schedules-app-1920x1080.webp)
@@ -115,8 +117,9 @@ screenly edge-app create --name meal-schedules-app --in-place
 bun run deploy
 ```
 
-In CI, `Update Edge App` deploys every push to `master` to stage, and a version
-tag such as `v26.10.0` to production. To release, tag the commit on `master` and
+In CI, `Update Edge App` starts a stage deploy on every push to `master`, and a
+production deploy for a version tag such as `v26.10.0`. Both wait for approval
+in the GitHub `stage` and `production` environments. To release, tag the commit on `master` and
 push the tag. A tag whose commit is not on `master` is refused:
 
 ```bash
@@ -135,6 +138,5 @@ it.
 The Edge App id is passed to the action rather than written into
 `screenly.yml`, so this repository's manifest carries no `id`. Set it per
 environment as a repository variable, `STAGE_EDGE_APP_ID` and
-`PRODUCTION_EDGE_APP_ID`, or as an `EDGE_APP_ID` secret scoped to a GitHub
-environment, which takes precedence. `Initialize Edge App` runs once by hand to
+`PRODUCTION_EDGE_APP_ID`. `Initialize Edge App` runs once by hand to
 create the app in an environment.
